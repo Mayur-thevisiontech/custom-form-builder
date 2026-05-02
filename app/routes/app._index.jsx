@@ -146,7 +146,19 @@ export default function Index() {
         <s-paragraph>
           Create and manage your custom storefront forms. All submitted data can be viewed in the dashboard.
         </s-paragraph>
-        <s-button url="/app/forms">View Forms</s-button>
+        <s-button href="/app/forms">View Forms</s-button>
+      </s-section>
+
+      <s-section heading="How to use the Form Builder">
+        <s-paragraph>
+          1. Go to the <strong>Forms</strong> page and click <strong>Create form</strong>.<br/>
+          2. Give your form a name and add the fields you need.<br/>
+          3. Customize your submit button text and color.<br/>
+          4. Save your form. It will be ready to use on your storefront!
+        </s-paragraph>
+        <s-paragraph>
+          <em>Note: First Name and Email are mandatory for all forms to ensure you collect essential customer data.</em>
+        </s-paragraph>
       </s-section>
     </s-page>
   );

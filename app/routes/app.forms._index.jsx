@@ -1,4 +1,5 @@
 import { useLoaderData, Link, useFetcher } from "react-router";
+import { boundary } from "@shopify/shopify-app-react-router/server";
 import { Page, Layout, Card, ResourceList, ResourceItem, Text, Button, EmptyState } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
@@ -99,3 +100,7 @@ export default function FormsIndex() {
     </Page>
   );
 }
+
+export const headers = (headersArgs) => {
+  return boundary.headers(headersArgs);
+};

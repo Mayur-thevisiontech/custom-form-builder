@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { redirect } from "react-router";
+import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useFetcher, useNavigate } from "react-router";
 import {
   Page,
@@ -196,3 +197,7 @@ export default function NewForm() {
     </Page>
   );
 }
+
+export const headers = (headersArgs) => {
+  return boundary.headers(headersArgs);
+};
