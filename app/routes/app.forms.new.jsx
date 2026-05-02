@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useFetcher, useNavigate } from "react-router";
@@ -410,10 +410,10 @@ export default function NewForm() {
                 <Box padding="400" background="bg-surface-tertiary" borderRadius="200" borderWidth="025" borderColor="border">
                   <Text variant="headingMd" as="h3" alignment="center">{title || "Form Preview"}</Text>
                   <Box paddingBlockStart="400">
-                    <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(6, 1fr)', 
-                      gap: '12px' 
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(6, 1fr)',
+                      gap: '12px'
                     }}>
                       {fields.map((field) => {
                         const gridSpan = field.width === '33' ? 'span 2' : field.width === '50' ? 'span 3' : 'span 6';
@@ -469,10 +469,10 @@ export default function NewForm() {
                       })}
                     </div>
 
-                    <div style={{ 
-                      marginTop: '24px', 
-                      display: 'flex', 
-                      justifyContent: submitWidth === 'auto' ? 'center' : 'stretch' 
+                    <div style={{
+                      marginTop: '24px',
+                      display: 'flex',
+                      justifyContent: submitWidth === 'auto' ? 'center' : 'stretch'
                     }}>
                       <button style={{
                         width: submitWidth === 'auto' ? 'auto' : '100%',
