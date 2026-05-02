@@ -48,7 +48,9 @@ export const action = async ({ request }) => {
 
 const DEFAULT_FIELDS = [
   { id: "first_name", type: "text", label: "First Name", required: true, deletable: false },
+  { id: "last_name", type: "text", label: "Last Name", required: false, deletable: false },
   { id: "email", type: "email", label: "Email", required: true, deletable: false },
+
 ];
 
 export default function NewForm() {
@@ -201,6 +203,27 @@ export default function NewForm() {
                             onClick={() => removeField(field.id)}
                           />
                         )}
+                      </InlineStack>
+
+                      <InlineStack gap="300">
+                        <div style={{ flex: 1 }}>
+                          <TextField
+                            label="Placeholder"
+                            value={field.placeholder || ""}
+                            onChange={(val) => updateField(field.id, "placeholder", val)}
+                            autoComplete="off"
+                            placeholder="e.g. Enter your name"
+                          />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <TextField
+                            label="Help Text (Small information)"
+                            value={field.helpText || ""}
+                            onChange={(val) => updateField(field.id, "helpText", val)}
+                            autoComplete="off"
+                            placeholder="e.g. We'll never share your email."
+                          />
+                        </div>
                       </InlineStack>
 
                       {["radio", "select", "checkbox"].includes(field.type) && (
