@@ -183,6 +183,8 @@ export default function NewForm() {
     setColorHsb(hsb);
     setSubmitColor(hsbToHex(hsb));
   };
+
+  const handleSave = () => {
     if (!title) {
       alert("Please provide a form name");
       return;
