@@ -74,7 +74,9 @@ const DEFAULT_FIELDS = [
   { id: "email", type: "email", label: "Email", required: true, showLabel: true, deletable: false, width: "100" },
 ];
 
-function SortableField({ field, index, updateField, removeField, addOption, updateOption, removeOption, fieldTypes, fieldWidths }) {
+function SortableField({ field, index, updateField, removeField, addOption, updateOption, removeOption, fieldTypes, fieldWidths, allFields }) {
+  const triggerableFields = allFields.filter(f => f.id !== field.id && ["select", "radio", "checkbox"].includes(f.type) && f.options?.length > 0);
+
   const {
     attributes,
     listeners,
@@ -219,6 +221,69 @@ function SortableField({ field, index, updateField, removeField, addOption, upda
               </Card>
             </Box>
           )}
+          {/* Conditional Logic Configuration */}
+          <Box paddingBlockStart="200" paddingBlockEnd="100">
+            <Card background="bg-surface-secondary">
+              <BlockStack gap="300">
+                <Checkbox
+                  label="Enable Conditional Logic (Hide/Show field based on another field)"
+                  checked={!!field.logic}
+                  onChange={(checked) => {
+                    if (checked) {
+                      updateField(field.id, "logic", { action: "show", triggerFieldId: "", triggerValue: "" });
+                    } else {
+                      updateField(field.id, "logic", null);
+                    }
+                  }}
+                />
+                
+                {field.logic && (
+                  <InlineStack gap="300" align="start">
+                    <div style={{ flex: 1 }}>
+                      <Select
+                        label="Action"
+                        options={[{label: "Show this field", value: "show"}, {label: "Hide this field", value: "hide"}]}
+                        value={field.logic.action || "show"}
+                        onChange={(val) => updateField(field.id, "logic", { ...field.logic, action: val })}
+                      />
+                    </div>
+                    <div style={{ flex: 1, alignSelf: 'center', paddingTop: '24px' }}>
+                      <Text variant="bodyMd" alignment="center">when</Text>
+                    </div>
+                    <div style={{ flex: 2 }}>
+                      <Select
+                        label="Target Field"
+                        options={[
+                          {label: "Select field...", value: ""},
+                          ...triggerableFields.map(f => ({ label: f.label, value: f.id }))
+                        ]}
+                        value={field.logic.triggerFieldId || ""}
+                        onChange={(val) => updateField(field.id, "logic", { ...field.logic, triggerFieldId: val, triggerValue: "" })}
+                      />
+                    </div>
+                    <div style={{ flex: 1, alignSelf: 'center', paddingTop: '24px' }}>
+                      <Text variant="bodyMd" alignment="center">equals</Text>
+                    </div>
+                    <div style={{ flex: 2 }}>
+                      {field.logic.triggerFieldId ? (
+                        <Select
+                          label="Target Value"
+                          options={[
+                            {label: "Select value...", value: ""},
+                            ...(allFields.find(f => f.id === field.logic.triggerFieldId)?.options || []).map(opt => ({ label: opt, value: opt }))
+                          ]}
+                          value={field.logic.triggerValue || ""}
+                          onChange={(val) => updateField(field.id, "logic", { ...field.logic, triggerValue: val })}
+                        />
+                      ) : (
+                        <Select label="Target Value" options={[{label: "Select field first", value: ""}]} disabled />
+                      )}
+                    </div>
+                  </InlineStack>
+                )}
+              </BlockStack>
+            </Card>
+          </Box>
         </BlockStack>
       </Box>
     </div>
@@ -235,6 +300,11 @@ export default function NewForm() {
   const [submitText, setSubmitText] = useState("Submit");
   const [submitColor, setSubmitColor] = useState("#008060");
   const [submitWidth, setSubmitWidth] = useState("100");
+  
+  const [previewState, setPreviewState] = useState({});
+  const handlePreviewChange = (fieldId, val) => {
+    setPreviewState(prev => ({ ...prev, [fieldId]: val }));
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -557,6 +627,7 @@ export default function NewForm() {
                                 removeOption={removeOption}
                                 fieldTypes={fieldTypeOptions}
                                 fieldWidths={fieldWidths}
+                                allFields={fields}
                               />
                             ))}
                           </BlockStack>
@@ -617,6 +688,18 @@ export default function NewForm() {
                       gap: '16px'
                     }}>
                       {fields.map((field) => {
+                        // Conditional Logic Check
+                        if (field.logic && field.logic.triggerFieldId && field.logic.triggerValue) {
+                          const triggerField = fields.find(f => f.id === field.logic.triggerFieldId);
+                          const currentVal = previewState[field.logic.triggerFieldId] !== undefined ? previewState[field.logic.triggerFieldId] : triggerField?.defaultValue || "";
+                          
+                          const valsArray = Array.isArray(currentVal) ? currentVal : [currentVal];
+                          const conditionMet = valsArray.includes(field.logic.triggerValue);
+                          
+                          if (field.logic.action === "show" && !conditionMet) return null;
+                          if (field.logic.action === "hide" && conditionMet) return null;
+                        }
+
                         const gridSpan = field.width === '33' ? 'span 2' : field.width === '50' ? 'span 3' : 'span 6';
                         return (
                           <div key={field.id} style={{ gridColumn: gridSpan }}>
@@ -640,34 +723,51 @@ export default function NewForm() {
                                   <Text variant="bodySm" tone="subdued">{field.placeholder}</Text>
                                 </div>
                               ) : field.type === "select" ? (
-                                <div style={{ border: '1px solid #c9cccf', borderRadius: '4px', padding: '10px', background: 'white', display: 'flex', justifyContent: 'space-between', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)' }}>
-                                  <Text variant="bodySm" tone={field.defaultValue ? undefined : "subdued"}>
-                                    {field.defaultValue || field.placeholder || "Select option..."}
-                                  </Text>
-                                  <Text variant="bodySm">▼</Text>
+                                <div style={{ position: 'relative' }}>
+                                  <select 
+                                    value={previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue || ""}
+                                    onChange={(e) => handlePreviewChange(field.id, e.target.value)}
+                                    style={{ border: '1px solid #c9cccf', borderRadius: '4px', padding: '10px', background: 'white', display: 'flex', justifyContent: 'space-between', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)', width: '100%', appearance: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '14px', color: (previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue) ? 'inherit' : '#8c9196' }}
+                                  >
+                                    <option value="">{field.placeholder || "Select option..."}</option>
+                                    {field.options?.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
+                                  </select>
+                                  <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                                    <Text variant="bodySm">▼</Text>
+                                  </div>
                                 </div>
                               ) : field.type === "radio" || field.type === "checkbox" ? (
                                 <BlockStack gap="100">
                                   {field.options?.map((opt, i) => {
-                                    const isDefault = field.defaultValue === opt;
-                                    const isChecked = field.type === "radio" ? isDefault : false;
+                                    const currentVal = previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue || (field.type === 'checkbox' ? [] : "");
+                                    const isChecked = field.type === "radio" ? currentVal === opt : (Array.isArray(currentVal) && currentVal.includes(opt));
+                                    
                                     return (
-                                      <InlineStack key={i} gap="200" blockAlign="center">
-                                        <div style={{
-                                          width: '16px',
-                                          height: '16px',
-                                          border: `2px solid ${isChecked ? submitColor : '#8c9196'}`,
-                                          borderRadius: field.type === 'radio' ? '50%' : '3px',
-                                          background: isChecked ? submitColor : 'white',
-                                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                          flexShrink: 0,
-                                        }}>
-                                          {isChecked && (
-                                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'white' }} />
-                                          )}
-                                        </div>
-                                        <Text variant="bodyMd" fontWeight={isDefault ? 'bold' : undefined}>{opt}</Text>
-                                      </InlineStack>
+                                      <div key={i} onClick={() => {
+                                        if (field.type === "radio") {
+                                          handlePreviewChange(field.id, opt);
+                                        } else {
+                                          const arr = Array.isArray(currentVal) ? currentVal : [];
+                                          handlePreviewChange(field.id, arr.includes(opt) ? arr.filter(v => v !== opt) : [...arr, opt]);
+                                        }
+                                      }} style={{ cursor: 'pointer' }}>
+                                        <InlineStack gap="200" blockAlign="center">
+                                          <div style={{
+                                            width: '16px',
+                                            height: '16px',
+                                            border: `2px solid ${isChecked ? submitColor : '#8c9196'}`,
+                                            borderRadius: field.type === 'radio' ? '50%' : '3px',
+                                            background: isChecked ? submitColor : 'white',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            flexShrink: 0,
+                                          }}>
+                                            {isChecked && (
+                                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'white' }} />
+                                            )}
+                                          </div>
+                                          <Text variant="bodyMd" fontWeight={isChecked ? 'bold' : undefined}>{opt}</Text>
+                                        </InlineStack>
+                                      </div>
                                     );
                                   })}
                                 </BlockStack>
