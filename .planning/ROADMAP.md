@@ -5,7 +5,7 @@ This roadmap outlines the journey from an empty directory to a fully functional 
 
 ## Phases
 
-- [ ] **Phase 1: Foundation & Schema** - Initialize project and define data structures.
+- [x] **Phase 1: Foundation & Schema** - Initialize project and define data structures.
 - [ ] **Phase 2: Core Admin UI** - Basic form management (CRUD) and dashboard.
 - [ ] **Phase 3: Form Builder UI** - Drag-and-drop field editor with configuration.
 - [ ] **Phase 4: Logic & Validation** - Implementation of conditional visibility and input rules.
@@ -25,8 +25,8 @@ This roadmap outlines the journey from an empty directory to a fully functional 
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Initialize Shopify Remix App and set up environment.
-- [ ] 01-02: Define and migrate Prisma schema.
+- [x] 01-01: Initialize Shopify Remix App and set up environment.
+- [x] 01-02: Define and migrate Prisma schema.
 
 ### Phase 2: Core Admin UI
 **Goal**: Create the high-level management interface for forms.
@@ -102,7 +102,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Schema | 0/2 | Not started | - |
+| 1. Foundation & Schema | 2/2 | Complete | 2026-05-02 |
 | 2. Core Admin UI | 0/2 | Not started | - |
 | 3. Form Builder UI | 0/3 | Not started | - |
 | 4. Logic & Validation | 0/2 | Not started | - |
