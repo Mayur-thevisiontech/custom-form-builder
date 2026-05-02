@@ -6,9 +6,9 @@
 ## v1 Requirements
 
 ### Foundation
-- [ ] **FND-01**: Initialize Shopify Remix App with TypeScript.
-- [ ] **FND-02**: Set up Prisma schema for Forms and Submissions.
-- [ ] **FND-03**: Configure App Proxy for secure storefront submissions.
+- [x] **FND-01**: Initialize Shopify Remix App with TypeScript.
+- [x] **FND-02**: Set up Prisma schema for Forms and Submissions.
+- [x] **FND-03**: Configure App Proxy for secure storefront submissions.
 
 ### Form Builder (Admin)
 - [ ] **BLD-01**: Admin can create, edit, and delete forms.
@@ -47,9 +47,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | Phase 1 | Pending |
-| FND-02 | Phase 1 | Pending |
-| FND-03 | Phase 1 | Pending |
+| FND-01 | Phase 1 | Complete |
+| FND-02 | Phase 1 | Complete |
+| FND-03 | Phase 1 | Complete |
 | BLD-01 | Phase 2 | Pending |
 | BLD-02 | Phase 3 | Pending |
 | BLD-03 | Phase 3 | Pending |
