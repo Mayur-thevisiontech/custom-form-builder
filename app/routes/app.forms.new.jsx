@@ -218,6 +218,7 @@ export default function NewForm() {
 
   return (
     <Page
+      fullWidth
       title="Create new form"
       backAction={{ content: "Forms", url: "/app/forms" }}
       primaryAction={{

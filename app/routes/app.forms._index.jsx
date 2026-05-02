@@ -153,6 +153,7 @@ export default function FormsIndex() {
 
   return (
     <Page
+      fullWidth
       title="My Forms"
       subtitle="Manage and track your custom storefront forms"
       primaryAction={{
