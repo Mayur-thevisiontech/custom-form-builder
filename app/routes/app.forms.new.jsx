@@ -7,6 +7,7 @@ import {
   Layout,
   Card,
   TextField,
+  Select,
   Button,
   BlockStack,
   InlineStack,
@@ -58,6 +59,17 @@ export default function NewForm() {
   const [submitText, setSubmitText] = useState("Submit");
   const [submitColor, setSubmitColor] = useState("#008060");
 
+  const fieldTypes = [
+    { label: "Text", value: "text" },
+    { label: "Email", value: "email" },
+    { label: "Textarea", value: "textarea" },
+    { label: "Checkbox", value: "checkbox" },
+    { label: "Radio", value: "radio" },
+    { label: "Dropdown", value: "select" },
+    { label: "File Upload", value: "file" },
+    { label: "Phone", value: "phone" },
+  ];
+
   const addField = () => {
     const newField = {
       id: `field_${Date.now()}`,
@@ -65,6 +77,7 @@ export default function NewForm() {
       label: "New Field",
       required: false,
       deletable: true,
+      options: [],
     };
     setFields([...fields, newField]);
   };
@@ -76,6 +89,41 @@ export default function NewForm() {
   const updateField = (id, key, value) => {
     setFields(
       fields.map((f) => (f.id === id ? { ...f, [key]: value } : f))
+    );
+  };
+
+  const addOption = (fieldId) => {
+    setFields(
+      fields.map((f) => {
+        if (f.id === fieldId) {
+          return { ...f, options: [...(f.options || []), `Option ${(f.options?.length || 0) + 1}`] };
+        }
+        return f;
+      })
+    );
+  };
+
+  const updateOption = (fieldId, index, value) => {
+    setFields(
+      fields.map((f) => {
+        if (f.id === fieldId) {
+          const newOptions = [...f.options];
+          newOptions[index] = value;
+          return { ...f, options: newOptions };
+        }
+        return f;
+      })
+    );
+  };
+
+  const removeOption = (fieldId, index) => {
+    setFields(
+      fields.map((f) => {
+        if (f.id === fieldId) {
+          return { ...f, options: f.options.filter((_, i) => i !== index) };
+        }
+        return f;
+      })
     );
   };
 
@@ -121,25 +169,66 @@ export default function NewForm() {
               <BlockStack gap="400">
                 <Text variant="headingMd" as="h2">Form Fields</Text>
                 <Divider />
-                {fields.map((field, index) => (
-                  <Box key={field.id} padding="200" background="bg-surface-secondary" borderRadius="200">
-                    <InlineStack align="space-between" blockAlign="center">
-                      <div style={{ flex: 1, marginRight: '16px' }}>
-                        <TextField
-                          label={`Field Label (${field.type})`}
-                          value={field.label}
-                          onChange={(val) => updateField(field.id, "label", val)}
-                          autoComplete="off"
-                        />
-                      </div>
-                      {field.deletable && (
-                        <Button
-                          icon={DeleteIcon}
-                          tone="critical"
-                          onClick={() => removeField(field.id)}
-                        />
+                {fields.map((field) => (
+                  <Box key={field.id} padding="400" background="bg-surface-secondary" borderRadius="200" borderWidth="025" borderColor="border">
+                    <BlockStack gap="300">
+                      <InlineStack align="space-between" blockAlign="center">
+                        <div style={{ flex: 1, marginRight: '16px' }}>
+                          <InlineStack gap="300">
+                            <div style={{ flex: 2 }}>
+                              <TextField
+                                label="Field Label"
+                                value={field.label}
+                                onChange={(val) => updateField(field.id, "label", val)}
+                                autoComplete="off"
+                              />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <Select
+                                label="Type"
+                                options={fieldTypes}
+                                value={field.type}
+                                onChange={(val) => updateField(field.id, "type", val)}
+                                disabled={!field.deletable}
+                              />
+                            </div>
+                          </InlineStack>
+                        </div>
+                        {field.deletable && (
+                          <Button
+                            icon={DeleteIcon}
+                            tone="critical"
+                            onClick={() => removeField(field.id)}
+                          />
+                        )}
+                      </InlineStack>
+
+                      {["radio", "select", "checkbox"].includes(field.type) && (
+                        <Box paddingBlockStart="200">
+                          <BlockStack gap="200">
+                            <Text variant="bodySm" fontWeight="bold">Options</Text>
+                            {field.options?.map((option, idx) => (
+                              <InlineStack key={idx} gap="200" align="start">
+                                <div style={{ flex: 1 }}>
+                                  <TextField
+                                    value={option}
+                                    onChange={(val) => updateOption(field.id, idx, val)}
+                                    autoComplete="off"
+                                    placeholder={`Option ${idx + 1}`}
+                                  />
+                                </div>
+                                <Button
+                                  icon={DeleteIcon}
+                                  onClick={() => removeOption(field.id, idx)}
+                                  variant="plain"
+                                />
+                              </InlineStack>
+                            ))}
+                            <Button variant="plain" onClick={() => addOption(field.id)}>Add Option</Button>
+                          </BlockStack>
+                        </Box>
                       )}
-                    </InlineStack>
+                    </BlockStack>
                   </Box>
                 ))}
                 <Button icon={PlusIcon} onClick={addField}>Add Field</Button>
