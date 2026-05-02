@@ -18,6 +18,7 @@ import {
   ColorPicker,
   ButtonGroup,
   Tabs,
+  Checkbox,
 } from "@shopify/polaris";
 import { DeleteIcon, PlusIcon, ChevronUpIcon, ChevronDownIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
@@ -309,6 +310,14 @@ export default function NewForm() {
                                   options={fieldWidths}
                                   value={field.width || "100"}
                                   onChange={(val) => updateField(field.id, "width", val)}
+                                />
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', height: '100%', paddingTop: '24px' }}>
+                                <Checkbox
+                                  label="Required"
+                                  checked={field.required}
+                                  onChange={(val) => updateField(field.id, "required", val)}
+                                  disabled={!field.deletable && field.required}
                                 />
                               </div>
                             </InlineStack>
