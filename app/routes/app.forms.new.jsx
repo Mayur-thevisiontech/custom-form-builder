@@ -400,59 +400,63 @@ export default function NewForm() {
                 <Box padding="400" background="bg-surface-tertiary" borderRadius="200" borderWidth="025" borderColor="border">
                   <Text variant="headingMd" as="h3" alignment="center">{title || "Form Preview"}</Text>
                   <Box paddingBlockStart="400">
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-                      {fields.map((field) => (
-                        <div key={field.id} style={{
-                          flex: `0 0 calc(${field.width}% - ${field.width === '100' ? '0px' : '11px'})`,
-                          minWidth: field.width === '100' ? '100%' : '150px'
-                        }}>
-                          <BlockStack gap="100">
-                            <Text variant="bodySm" fontWeight="bold">{field.label} {field.required && "*"}</Text>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(6, 1fr)',
+                      gap: '12px'
+                    }}>
+                      {fields.map((field) => {
+                        const gridSpan = field.width === '33' ? 'span 2' : field.width === '50' ? 'span 3' : 'span 6';
+                        return (
+                          <div key={field.id} style={{ gridColumn: gridSpan }}>
+                            <BlockStack gap="100">
+                              <Text variant="bodySm" fontWeight="bold">{field.label} {field.required && "*"}</Text>
 
-                            {/* Rich Field Rendering */}
-                            {field.type === "textarea" ? (
-                              <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', minHeight: '60px', background: 'white' }}>
-                                <Text variant="bodySm" tone="subdued">{field.placeholder}</Text>
-                              </div>
-                            ) : field.type === "select" ? (
-                              <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', background: 'white', display: 'flex', justifyContent: 'space-between' }}>
-                                <Text variant="bodySm" tone="subdued">{field.placeholder || "Select option..."}</Text>
-                                <Text variant="bodySm">▼</Text>
-                              </div>
-                            ) : field.type === "radio" || field.type === "checkbox" ? (
-                              <BlockStack gap="100">
-                                {field.options?.map((opt, i) => (
-                                  <InlineStack key={i} gap="200">
-                                    <div style={{ width: '14px', height: '14px', border: '1px solid #ddd', borderRadius: field.type === 'radio' ? '50%' : '2px', background: 'white' }} />
-                                    <Text variant="bodySm">{opt}</Text>
-                                  </InlineStack>
-                                ))}
-                              </BlockStack>
-                            ) : field.type === "phone" ? (
-                              <InlineStack gap="0">
-                                <div style={{ border: '1px solid #ddd', borderRight: 'none', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', padding: '8px', background: '#f9f9f9', display: 'flex', alignItems: 'center' }}>
-                                  <Text variant="bodySm">🇺🇸 +1</Text>
+                              {/* Rich Field Rendering */}
+                              {field.type === "textarea" ? (
+                                <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', minHeight: '60px', background: 'white' }}>
+                                  <Text variant="bodySm" tone="subdued">{field.placeholder}</Text>
                                 </div>
-                                <div style={{ flex: 1, border: '1px solid #ddd', borderTopRightRadius: '4px', borderBottomRightRadius: '4px', padding: '8px', background: 'white' }}>
-                                  <Text variant="bodySm" tone="subdued">Phone number</Text>
+                              ) : field.type === "select" ? (
+                                <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', background: 'white', display: 'flex', justifyContent: 'space-between' }}>
+                                  <Text variant="bodySm" tone="subdued">{field.placeholder || "Select option..."}</Text>
+                                  <Text variant="bodySm">▼</Text>
                                 </div>
-                              </InlineStack>
-                            ) : field.type === "file" ? (
-                              <div style={{ border: '2px dashed #ccc', borderRadius: '8px', padding: '20px', background: 'white', textAlign: 'center' }}>
-                                <Text variant="bodySm" tone="subdued">Drop files here or click to upload</Text>
-                              </div>
-                            ) : (
-                              <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', background: 'white' }}>
-                                <Text variant="bodySm" tone="subdued">{field.placeholder || `Enter ${field.label.toLowerCase()}...`}</Text>
-                              </div>
-                            )}
+                              ) : field.type === "radio" || field.type === "checkbox" ? (
+                                <BlockStack gap="100">
+                                  {field.options?.map((opt, i) => (
+                                    <InlineStack key={i} gap="200">
+                                      <div style={{ width: '14px', height: '14px', border: '1px solid #ddd', borderRadius: field.type === 'radio' ? '50%' : '2px', background: 'white' }} />
+                                      <Text variant="bodySm">{opt}</Text>
+                                    </InlineStack>
+                                  ))}
+                                </BlockStack>
+                              ) : field.type === "phone" ? (
+                                <InlineStack gap="0">
+                                  <div style={{ border: '1px solid #ddd', borderRight: 'none', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', padding: '8px', background: '#f9f9f9', display: 'flex', alignItems: 'center' }}>
+                                    <Text variant="bodySm">🇺🇸 +1</Text>
+                                  </div>
+                                  <div style={{ flex: 1, border: '1px solid #ddd', borderTopRightRadius: '4px', borderBottomRightRadius: '4px', padding: '8px', background: 'white' }}>
+                                    <Text variant="bodySm" tone="subdued">Phone number</Text>
+                                  </div>
+                                </InlineStack>
+                              ) : field.type === "file" ? (
+                                <div style={{ border: '2px dashed #ccc', borderRadius: '8px', padding: '20px', background: 'white', textAlign: 'center' }}>
+                                  <Text variant="bodySm" tone="subdued">Drop files here or click to upload</Text>
+                                </div>
+                              ) : (
+                                <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', background: 'white' }}>
+                                  <Text variant="bodySm" tone="subdued">{field.placeholder || `Enter ${field.label.toLowerCase()}...`}</Text>
+                                </div>
+                              )}
 
-                            {field.helpText && (
-                              <Text variant="bodyXs" tone="subdued">{field.helpText}</Text>
-                            )}
-                          </BlockStack>
-                        </div>
-                      ))}
+                              {field.helpText && (
+                                <Text variant="bodyXs" tone="subdued">{field.helpText}</Text>
+                              )}
+                            </BlockStack>
+                          </div>
+                        );
+                      })}
                     </div>
 
                     <div style={{ marginTop: '24px' }}>
