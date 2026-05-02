@@ -16,8 +16,9 @@ import {
   Divider,
   Icon,
   ColorPicker,
+  ButtonGroup,
 } from "@shopify/polaris";
-import { DeleteIcon, PlusIcon } from "@shopify/polaris-icons";
+import { DeleteIcon, PlusIcon, ChevronUpIcon, ChevronDownIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 
@@ -73,6 +74,12 @@ export default function NewForm() {
     { label: "Phone", value: "phone" },
   ];
 
+  const fieldWidths = [
+    { label: "100%", value: "100" },
+    { label: "50%", value: "50" },
+    { label: "33%", value: "33" },
+  ];
+
   const addField = () => {
     const newField = {
       id: `field_${Date.now()}`,
@@ -81,8 +88,18 @@ export default function NewForm() {
       required: false,
       deletable: true,
       options: [],
+      width: "100",
     };
     setFields([...fields, newField]);
+  };
+
+  const moveField = (index, direction) => {
+    const newFields = [...fields];
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= newFields.length) return;
+    const [movedItem] = newFields.splice(index, 1);
+    newFields.splice(newIndex, 0, movedItem);
+    setFields(newFields);
   };
 
   const removeField = (id) => {
@@ -226,31 +243,25 @@ export default function NewForm() {
               <BlockStack gap="400">
                 <Text variant="headingMd" as="h2">Form Fields</Text>
                 <Divider />
-                {fields.map((field) => (
+                {fields.map((field, index) => (
                   <Box key={field.id} padding="400" background="bg-surface-secondary" borderRadius="200" borderWidth="025" borderColor="border">
                     <BlockStack gap="300">
                       <InlineStack align="space-between" blockAlign="center">
-                        <div style={{ flex: 1, marginRight: '16px' }}>
-                          <InlineStack gap="300">
-                            <div style={{ flex: 2 }}>
-                              <TextField
-                                label="Field Label"
-                                value={field.label}
-                                onChange={(val) => updateField(field.id, "label", val)}
-                                autoComplete="off"
-                              />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <Select
-                                label="Type"
-                                options={fieldTypes}
-                                value={field.type}
-                                onChange={(val) => updateField(field.id, "type", val)}
-                                disabled={!field.deletable}
-                              />
-                            </div>
-                          </InlineStack>
-                        </div>
+                        <InlineStack gap="200">
+                          <ButtonGroup variant="segmented">
+                            <Button
+                              icon={ChevronUpIcon}
+                              onClick={() => moveField(index, -1)}
+                              disabled={index === 0}
+                            />
+                            <Button
+                              icon={ChevronDownIcon}
+                              onClick={() => moveField(index, 1)}
+                              disabled={index === fields.length - 1}
+                            />
+                          </ButtonGroup>
+                          <Text variant="bodyMd" fontWeight="bold">Field #{index + 1}</Text>
+                        </InlineStack>
                         {field.deletable && (
                           <Button
                             icon={DeleteIcon}
@@ -258,6 +269,34 @@ export default function NewForm() {
                             onClick={() => removeField(field.id)}
                           />
                         )}
+                      </InlineStack>
+
+                      <InlineStack gap="300">
+                        <div style={{ flex: 2 }}>
+                          <TextField
+                            label="Field Label"
+                            value={field.label}
+                            onChange={(val) => updateField(field.id, "label", val)}
+                            autoComplete="off"
+                          />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <Select
+                            label="Type"
+                            options={fieldTypes}
+                            value={field.type}
+                            onChange={(val) => updateField(field.id, "type", val)}
+                            disabled={!field.deletable}
+                          />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <Select
+                            label="Width"
+                            options={fieldWidths}
+                            value={field.width || "100"}
+                            onChange={(val) => updateField(field.id, "width", val)}
+                          />
+                        </div>
                       </InlineStack>
 
                       <InlineStack gap="300">
@@ -353,14 +392,92 @@ export default function NewForm() {
         </Layout.Section>
 
         <Layout.Section variant="oneThird">
-          <Card>
-            <BlockStack gap="200">
-              <Text variant="headingMd" as="h2">Help</Text>
-              <Text variant="bodyMd">
-                Forms must include First Name and Email as mandatory fields. These cannot be removed.
-              </Text>
-            </BlockStack>
-          </Card>
+          <div style={{ position: 'sticky', top: '20px' }}>
+            <Card>
+              <BlockStack gap="400">
+                <Text variant="headingLg" as="h2">Live Preview</Text>
+                <Divider />
+                <Box padding="400" background="bg-surface-tertiary" borderRadius="200" borderWidth="025" borderColor="border">
+                  <Text variant="headingMd" as="h3" alignment="center">{title || "Form Preview"}</Text>
+                  <Box paddingBlockStart="400">
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                      {fields.map((field) => (
+                        <div key={field.id} style={{
+                          flex: `0 0 calc(${field.width}% - ${field.width === '100' ? '0px' : '11px'})`,
+                          minWidth: field.width === '100' ? '100%' : '150px'
+                        }}>
+                          <BlockStack gap="100">
+                            <Text variant="bodySm" fontWeight="bold">{field.label} {field.required && "*"}</Text>
+
+                            {/* Rich Field Rendering */}
+                            {field.type === "textarea" ? (
+                              <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', minHeight: '60px', background: 'white' }}>
+                                <Text variant="bodySm" tone="subdued">{field.placeholder}</Text>
+                              </div>
+                            ) : field.type === "select" ? (
+                              <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', background: 'white', display: 'flex', justifyContent: 'space-between' }}>
+                                <Text variant="bodySm" tone="subdued">{field.placeholder || "Select option..."}</Text>
+                                <Text variant="bodySm">▼</Text>
+                              </div>
+                            ) : field.type === "radio" || field.type === "checkbox" ? (
+                              <BlockStack gap="100">
+                                {field.options?.map((opt, i) => (
+                                  <InlineStack key={i} gap="200">
+                                    <div style={{ width: '14px', height: '14px', border: '1px solid #ddd', borderRadius: field.type === 'radio' ? '50%' : '2px', background: 'white' }} />
+                                    <Text variant="bodySm">{opt}</Text>
+                                  </InlineStack>
+                                ))}
+                              </BlockStack>
+                            ) : field.type === "phone" ? (
+                              <InlineStack gap="0">
+                                <div style={{ border: '1px solid #ddd', borderRight: 'none', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', padding: '8px', background: '#f9f9f9', display: 'flex', alignItems: 'center' }}>
+                                  <Text variant="bodySm">🇺🇸 +1</Text>
+                                </div>
+                                <div style={{ flex: 1, border: '1px solid #ddd', borderTopRightRadius: '4px', borderBottomRightRadius: '4px', padding: '8px', background: 'white' }}>
+                                  <Text variant="bodySm" tone="subdued">Phone number</Text>
+                                </div>
+                              </InlineStack>
+                            ) : field.type === "file" ? (
+                              <div style={{ border: '2px dashed #ccc', borderRadius: '8px', padding: '20px', background: 'white', textAlign: 'center' }}>
+                                <Text variant="bodySm" tone="subdued">Drop files here or click to upload</Text>
+                              </div>
+                            ) : (
+                              <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', background: 'white' }}>
+                                <Text variant="bodySm" tone="subdued">{field.placeholder || `Enter ${field.label.toLowerCase()}...`}</Text>
+                              </div>
+                            )}
+
+                            {field.helpText && (
+                              <Text variant="bodyXs" tone="subdued">{field.helpText}</Text>
+                            )}
+                          </BlockStack>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ marginTop: '24px' }}>
+                      <button style={{
+                        width: '100%',
+                        backgroundColor: submitColor,
+                        color: 'white',
+                        padding: '12px',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontWeight: 'bold',
+                        cursor: 'default'
+                      }}>
+                        {submitText}
+                      </button>
+                    </div>
+                  </Box>
+                </Box>
+                <Divider />
+                <Text variant="bodySm" tone="subdued">
+                  Tip: Use the "Width" setting to align fields side-by-side (e.g., First Name and Last Name at 50% each).
+                </Text>
+              </BlockStack>
+            </Card>
+          </div>
         </Layout.Section>
       </Layout>
     </Page>
