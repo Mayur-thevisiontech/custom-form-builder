@@ -15,6 +15,7 @@ import {
   Box,
   Divider,
   Icon,
+  ColorPicker,
 } from "@shopify/polaris";
 import { DeleteIcon, PlusIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
@@ -129,7 +130,59 @@ export default function NewForm() {
     );
   };
 
-  const handleSave = () => {
+  // Helper to convert hex to hsb
+  const hexToHsb = (hex) => {
+    hex = hex.replace(/^#/, "");
+    if (hex.length === 3) hex = hex.split("").map(s => s + s).join("");
+    const r = parseInt(hex.slice(0, 2), 16) / 255;
+    const g = parseInt(hex.slice(2, 4), 16) / 255;
+    const b = parseInt(hex.slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, v = max;
+    const d = max - min;
+    s = max === 0 ? 0 : d / max;
+    if (max === min) {
+      h = 0;
+    } else {
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return { hue: h * 360, saturation: s, brightness: v };
+  };
+
+  // Helper to convert hsb to hex
+  const hsbToHex = ({ hue, saturation, brightness }) => {
+    const v = brightness;
+    const s = saturation;
+    const h = hue / 360;
+    const i = Math.floor(h * 6);
+    const f = h * 6 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
+    let r, g, b;
+    switch (i % 6) {
+      case 0: r = v; g = t; b = p; break;
+      case 1: r = q; g = v; b = p; break;
+      case 2: r = p; g = v; b = t; break;
+      case 3: r = p; g = q; b = v; break;
+      case 4: r = t; g = p; b = v; break;
+      case 5: r = v; g = p; b = q; break;
+    }
+    const toHex = (x) => Math.round(x * 255).toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  };
+
+  const [colorHsb, setColorHsb] = useState(hexToHsb(submitColor));
+
+  const handleColorChange = (hsb) => {
+    setColorHsb(hsb);
+    setSubmitColor(hsbToHex(hsb));
+  };
     if (!title) {
       alert("Please provide a form name");
       return;
@@ -267,13 +320,15 @@ export default function NewForm() {
                   onChange={setSubmitText}
                   autoComplete="off"
                 />
-                <TextField
-                  label="Button Color (Hex Code)"
-                  value={submitColor}
-                  onChange={setSubmitColor}
-                  autoComplete="off"
-                  placeholder="#008060"
-                />
+                <BlockStack gap="200">
+                  <Text variant="bodyMd">Button Color</Text>
+                  <InlineStack gap="400" blockAlign="center">
+                    <ColorPicker color={colorHsb} onChange={handleColorChange} />
+                    <Box padding="200" background="bg-surface-secondary" borderRadius="100" borderWidth="025" borderColor="border">
+                      <Text variant="bodyMd" fontWeight="bold">{submitColor.toUpperCase()}</Text>
+                    </Box>
+                  </InlineStack>
+                </BlockStack>
                 <div style={{ marginTop: '10px' }}>
                   <Text variant="bodySm">Preview:</Text>
                   <button
