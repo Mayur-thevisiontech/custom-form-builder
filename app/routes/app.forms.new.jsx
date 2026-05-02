@@ -485,8 +485,47 @@ export default function NewForm() {
               />
             </Card>
 
-            <Tabs tabs={tabs} selected={selectedTab} onSelect={handleTabChange}>
-              <Box paddingBlockStart="400">
+            <div style={{
+              display: 'flex',
+              background: '#ebeef0',
+              padding: '6px',
+              borderRadius: '12px',
+              width: '100%',
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
+            }}>
+              {tabs.map((tab, index) => {
+                const isActive = selectedTab === index;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(index)}
+                    style={{
+                      flex: 1,
+                      padding: '12px 24px',
+                      background: isActive ? '#ffffff' : 'transparent',
+                      color: isActive ? '#008060' : '#5c5f62',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '15px',
+                      fontWeight: isActive ? '600' : '500',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isActive ? '0 2px 5px rgba(0,0,0,0.1)' : 'none',
+                    }}
+                    onMouseOver={(e) => {
+                      if (!isActive) e.currentTarget.style.color = '#202223';
+                    }}
+                    onMouseOut={(e) => {
+                      if (!isActive) e.currentTarget.style.color = '#5c5f62';
+                    }}
+                  >
+                    {tab.content}
+                  </button>
+                );
+              })}
+            </div>
+
+            <Box paddingBlockStart="200">
                 {selectedTab === 0 ? (
                   <Card>
                     <BlockStack gap="400">
@@ -560,7 +599,6 @@ export default function NewForm() {
                   </Card>
                 )}
               </Box>
-            </Tabs>
           </BlockStack>
         </Layout.Section>
 
