@@ -6,7 +6,7 @@ This roadmap outlines the journey from an empty directory to a fully functional 
 ## Phases
 
 - [x] **Phase 1: Foundation & Schema** - Initialize project and define data structures.
-- [ ] **Phase 2: Core Admin UI** - Basic form management (CRUD) and dashboard.
+- [x] **Phase 2: Core Admin UI** - Basic form management (CRUD) and dashboard.
 - [ ] **Phase 3: Form Builder UI** - Drag-and-drop field editor with configuration.
 - [ ] **Phase 4: Logic & Validation** - Implementation of conditional visibility and input rules.
 - [ ] **Phase 5: Storefront Integration** - Theme App Extension and dynamic renderer.
@@ -38,8 +38,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Build Form Listing and Create/Delete actions.
-- [ ] 02-02: Implement basic form settings page (Title, Settings).
+- [x] 02-01: Build Form Listing and Create/Delete actions.
+- [x] 02-02: Implement basic form settings page (Title, Settings).
 
 ### Phase 3: Form Builder UI
 **Goal**: Build the interactive editor for form fields.
@@ -103,7 +103,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Schema | 2/2 | Complete | 2026-05-02 |
-| 2. Core Admin UI | 0/2 | Not started | - |
+| 2. Core Admin UI | 2/2 | Complete | 2026-05-02 |
 | 3. Form Builder UI | 0/3 | Not started | - |
 | 4. Logic & Validation | 0/2 | Not started | - |
 | 5. Storefront Integration | 0/3 | Not started | - |
