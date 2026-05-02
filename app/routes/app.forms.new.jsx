@@ -588,7 +588,7 @@ export default function NewForm() {
                                   <Text variant="bodyMd" fontWeight="bold">{field.label} {field.required && <span style={{ color: 'red' }}>*</span>}</Text>
                                   {field.helpText && (
                                     <Tooltip content={field.helpText}>
-                                      <div style={{ display: 'flex', alignItems: 'center', cursor: 'help' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center' }}>
                                         <Icon source={InfoIcon} tone="subdued" />
                                       </div>
                                     </Tooltip>
