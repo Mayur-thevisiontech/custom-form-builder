@@ -20,6 +20,7 @@ import {
   Tabs,
   Checkbox,
   Tooltip,
+  Modal,
 } from "@shopify/polaris";
 import { DeleteIcon, PlusIcon, DragHandleIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
@@ -70,7 +71,6 @@ export const action = async ({ request }) => {
 
 const DEFAULT_FIELDS = [
   { id: "first_name", type: "text", label: "First Name", required: true, deletable: false, width: "50" },
-  { id: "last_name", type: "text", label: "Last Name", required: false, deletable: false, width: "50" },
   { id: "email", type: "email", label: "Email", required: true, deletable: false, width: "100" },
 ];
 
@@ -194,7 +194,7 @@ function SortableField({ field, index, updateField, removeField, addOption, upda
                     </InlineStack>
                   ))}
                   <InlineStack>
-                     <Button size="micro" icon={PlusIcon} onClick={() => addOption(field.id)}>Add Option</Button>
+                    <Button size="micro" icon={PlusIcon} onClick={() => addOption(field.id)}>Add Option</Button>
                   </InlineStack>
 
                   {["radio", "select"].includes(field.type) && field.options?.length > 0 && (
@@ -224,6 +224,7 @@ export default function NewForm() {
   const fetcher = useFetcher();
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState(0);
+  const [isAddFieldModalOpen, setIsAddFieldModalOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [submitText, setSubmitText] = useState("Submit");
@@ -245,14 +246,54 @@ export default function NewForm() {
   const handleTabChange = useCallback((selectedTabIndex) => setSelectedTab(selectedTabIndex), []);
 
   const fieldTypes = [
-    { label: "Text", value: "text" },
-    { label: "Email", value: "email" },
-    { label: "Textarea", value: "textarea" },
-    { label: "Checkbox", value: "checkbox" },
-    { label: "Radio", value: "radio" },
-    { label: "Dropdown", value: "select" },
-    { label: "File Upload", value: "file" },
-    { label: "Phone", value: "phone" },
+    { 
+      label: "Text", 
+      value: "text", 
+      description: "Single line text input",
+      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M3 5.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5z" clipRule="evenodd" /></svg>
+    },
+    { 
+      label: "Email", 
+      value: "email", 
+      description: "Validates email address",
+      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0 0 16 4H4a2 2 0 0 0-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.118z" /></svg>
+    },
+    { 
+      label: "Textarea", 
+      value: "textarea", 
+      description: "Multi-line text input",
+      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M3 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4zm2 1.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z" clipRule="evenodd" /></svg>
+    },
+    { 
+      label: "Checkbox", 
+      value: "checkbox", 
+      description: "Multiple choice (can select many)",
+      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M16 4H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM8.293 13.707a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 1.414-1.414L7.586 11.586l6.707-6.707a1 1 0 0 1 1.414 1.414l-7.414 7.414z" clipRule="evenodd" /></svg>
+    },
+    { 
+      label: "Radio", 
+      value: "radio", 
+      description: "Multiple choice (select one)",
+      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z" clipRule="evenodd" /></svg>
+    },
+    { 
+      label: "Dropdown", 
+      value: "select", 
+      description: "Select from a dropdown list",
+      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M3 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4zm2 2v2h10V6H5zm0 4v2h6v-2H5zm0 4v2h10v-2H5z" clipRule="evenodd" /></svg>
+    },
+    { 
+      label: "File Upload", 
+      value: "file", 
+      description: "Upload an attachment",
+      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M6 2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.414A2 2 0 0 0 15.414 6L12 2.586A2 2 0 0 0 10.586 2H6zm5 6a1 1 0 1 0-2 0v3.586l-1.293-1.293a1 1 0 1 0-1.414 1.414l3 3a1 1 0 0 0 1.414 0l3-3a1 1 0 0 0-1.414-1.414L11 11.586V8z" clipRule="evenodd" /></svg>
+    },
+    { 
+      label: "Phone", 
+      value: "phone", 
+      description: "Phone number with country code",
+      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path d="M2 3a1 1 0 0 1 1-1h2.153a1 1 0 0 1 .986.836l.74 4.438a1 1 0 0 1-.328.931L4.85 9.77a13.013 13.013 0 0 0 5.38 5.38l1.564-1.701a1 1 0 0 1 .93-.327l4.438.74a1 1 0 0 1 .836.986V17a1 1 0 0 1-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
+    },
   ];
 
   const fieldWidths = [
@@ -261,17 +302,18 @@ export default function NewForm() {
     { label: "33%", value: "33" },
   ];
 
-  const addField = () => {
+  const addField = (type = "text", label = "New Field") => {
     const newField = {
       id: `field_${Date.now()}`,
-      type: "text",
-      label: "New Field",
+      type,
+      label,
       required: false,
       deletable: true,
-      options: [],
+      options: ["radio", "select", "checkbox"].includes(type) ? ["Option 1", "Option 2"] : [],
       width: "100",
     };
     setFields([...fields, newField]);
+    setIsAddFieldModalOpen(false);
   };
 
   const removeField = (id) => {
@@ -431,11 +473,11 @@ export default function NewForm() {
                   <Card>
                     <BlockStack gap="400">
                       <InlineStack align="space-between" blockAlign="center">
-                         <Text variant="headingMd" as="h2">Form Fields</Text>
-                         <Button icon={PlusIcon} onClick={addField} variant="primary">Add Field</Button>
+                        <Text variant="headingMd" as="h2">Form Fields</Text>
+                        <Button icon={PlusIcon} onClick={() => setIsAddFieldModalOpen(true)} variant="primary">Add Field</Button>
                       </InlineStack>
                       <Divider />
-                      
+
                       <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}
@@ -447,9 +489,9 @@ export default function NewForm() {
                         >
                           <BlockStack gap="300">
                             {fields.map((field, index) => (
-                              <SortableField 
+                              <SortableField
                                 key={field.id}
-                                field={field} 
+                                field={field}
                                 index={index}
                                 updateField={updateField}
                                 removeField={removeField}
@@ -464,7 +506,7 @@ export default function NewForm() {
                         </SortableContext>
                       </DndContext>
                       <Box paddingBlockStart="200">
-                         <Button icon={PlusIcon} onClick={addField} fullWidth>Add Field</Button>
+                        <Button icon={PlusIcon} onClick={() => setIsAddFieldModalOpen(true)} fullWidth>Add Field</Button>
                       </Box>
                     </BlockStack>
                   </Card>
@@ -523,7 +565,7 @@ export default function NewForm() {
                         return (
                           <div key={field.id} style={{ gridColumn: gridSpan }}>
                             <BlockStack gap="100">
-                              <Text variant="bodyMd" fontWeight="bold">{field.label} {field.required && <span style={{color: 'red'}}>*</span>}</Text>
+                              <Text variant="bodyMd" fontWeight="bold">{field.label} {field.required && <span style={{ color: 'red' }}>*</span>}</Text>
 
                               {/* Rich Field Rendering */}
                               {field.type === "textarea" ? (
@@ -622,6 +664,53 @@ export default function NewForm() {
           </div>
         </Layout.Section>
       </Layout>
+
+      <Modal
+        open={isAddFieldModalOpen}
+        onClose={() => setIsAddFieldModalOpen(false)}
+        title="Select Field Type"
+      >
+        <Modal.Section>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+            gap: '16px'
+          }}>
+            {fieldTypes.map((ft) => (
+              <div 
+                key={ft.value} 
+                onClick={() => addField(ft.value, ft.label)}
+                style={{
+                  border: '1px solid #c9cccf',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: 'white',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = '#008060';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = '#c9cccf';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div style={{ color: '#008060', marginBottom: '12px' }}>
+                  {ft.icon}
+                </div>
+                <Text variant="bodyMd" fontWeight="bold">{ft.label}</Text>
+                <div style={{ marginTop: '4px' }}>
+                  <Text variant="bodySm" tone="subdued">{ft.description}</Text>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Modal.Section>
+      </Modal>
+
     </Page>
   );
 }
