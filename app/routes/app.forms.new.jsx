@@ -17,6 +17,7 @@ import {
   Icon,
   ColorPicker,
   ButtonGroup,
+  Tabs,
 } from "@shopify/polaris";
 import { DeleteIcon, PlusIcon, ChevronUpIcon, ChevronDownIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
@@ -58,10 +59,19 @@ const DEFAULT_FIELDS = [
 export default function NewForm() {
   const fetcher = useFetcher();
   const navigate = useNavigate();
+  const [selectedTab, setSelectedTab] = useState(0);
   const [title, setTitle] = useState("");
   const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [submitText, setSubmitText] = useState("Submit");
   const [submitColor, setSubmitColor] = useState("#008060");
+  const [submitWidth, setSubmitWidth] = useState("100");
+
+  const tabs = [
+    { id: "fields", content: "Form Fields", accessibilityLabel: "Form Fields", panelID: "fields-panel" },
+    { id: "submit", content: "Submit Button", accessibilityLabel: "Submit Button", panelID: "submit-panel" },
+  ];
+
+  const handleTabChange = useCallback((selectedTabIndex) => setSelectedTab(selectedTabIndex), []);
 
   const fieldTypes = [
     { label: "Text", value: "text" },
@@ -210,7 +220,7 @@ export default function NewForm() {
       {
         title,
         schema: JSON.stringify(fields),
-        settings: JSON.stringify({ submitText, submitColor }),
+        settings: JSON.stringify({ submitText, submitColor, submitWidth }),
       },
       { method: "POST" }
     );
@@ -240,155 +250,154 @@ export default function NewForm() {
               />
             </Card>
 
-            <Card>
-              <BlockStack gap="400">
-                <Text variant="headingMd" as="h2">Form Fields</Text>
-                <Divider />
-                {fields.map((field, index) => (
-                  <Box key={field.id} padding="400" background="bg-surface-secondary" borderRadius="200" borderWidth="025" borderColor="border">
-                    <BlockStack gap="300">
-                      <InlineStack align="space-between" blockAlign="center">
-                        <InlineStack gap="200">
-                          <ButtonGroup variant="segmented">
-                            <Button
-                              icon={ChevronUpIcon}
-                              onClick={() => moveField(index, -1)}
-                              disabled={index === 0}
-                            />
-                            <Button
-                              icon={ChevronDownIcon}
-                              onClick={() => moveField(index, 1)}
-                              disabled={index === fields.length - 1}
-                            />
-                          </ButtonGroup>
-                          <Text variant="bodyMd" fontWeight="bold">Field #{index + 1}</Text>
-                        </InlineStack>
-                        {field.deletable && (
-                          <Button
-                            icon={DeleteIcon}
-                            tone="critical"
-                            onClick={() => removeField(field.id)}
-                          />
-                        )}
-                      </InlineStack>
-
-                      <InlineStack gap="300">
-                        <div style={{ flex: 2 }}>
-                          <TextField
-                            label="Field Label"
-                            value={field.label}
-                            onChange={(val) => updateField(field.id, "label", val)}
-                            autoComplete="off"
-                          />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <Select
-                            label="Type"
-                            options={fieldTypes}
-                            value={field.type}
-                            onChange={(val) => updateField(field.id, "type", val)}
-                            disabled={!field.deletable}
-                          />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <Select
-                            label="Width"
-                            options={fieldWidths}
-                            value={field.width || "100"}
-                            onChange={(val) => updateField(field.id, "width", val)}
-                          />
-                        </div>
-                      </InlineStack>
-
-                      <InlineStack gap="300">
-                        <div style={{ flex: 1 }}>
-                          <TextField
-                            label="Placeholder"
-                            value={field.placeholder || ""}
-                            onChange={(val) => updateField(field.id, "placeholder", val)}
-                            autoComplete="off"
-                            placeholder="e.g. Enter your name"
-                          />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <TextField
-                            label="Help Text (Small information)"
-                            value={field.helpText || ""}
-                            onChange={(val) => updateField(field.id, "helpText", val)}
-                            autoComplete="off"
-                            placeholder="e.g. We'll never share your email."
-                          />
-                        </div>
-                      </InlineStack>
-
-                      {["radio", "select", "checkbox"].includes(field.type) && (
-                        <Box paddingBlockStart="200">
-                          <BlockStack gap="200">
-                            <Text variant="bodySm" fontWeight="bold">Options</Text>
-                            {field.options?.map((option, idx) => (
-                              <InlineStack key={idx} gap="200" align="start">
-                                <div style={{ flex: 1 }}>
-                                  <TextField
-                                    value={option}
-                                    onChange={(val) => updateOption(field.id, idx, val)}
-                                    autoComplete="off"
-                                    placeholder={`Option ${idx + 1}`}
+            <Tabs tabs={tabs} selected={selectedTab} onSelect={handleTabChange}>
+              <Box paddingBlockStart="400">
+                {selectedTab === 0 ? (
+                  <Card>
+                    <BlockStack gap="400">
+                      <Text variant="headingMd" as="h2">Form Fields</Text>
+                      <Divider />
+                      {fields.map((field, index) => (
+                        <Box key={field.id} padding="400" background="bg-surface-secondary" borderRadius="200" borderWidth="025" borderColor="border">
+                          <BlockStack gap="300">
+                            <InlineStack align="space-between" blockAlign="center">
+                              <InlineStack gap="200">
+                                <ButtonGroup variant="segmented">
+                                  <Button
+                                    icon={ChevronUpIcon}
+                                    onClick={() => moveField(index, -1)}
+                                    disabled={index === 0}
                                   />
-                                </div>
+                                  <Button
+                                    icon={ChevronDownIcon}
+                                    onClick={() => moveField(index, 1)}
+                                    disabled={index === fields.length - 1}
+                                  />
+                                </ButtonGroup>
+                                <Text variant="bodyMd" fontWeight="bold">Field #{index + 1}</Text>
+                              </InlineStack>
+                              {field.deletable && (
                                 <Button
                                   icon={DeleteIcon}
-                                  onClick={() => removeOption(field.id, idx)}
-                                  variant="plain"
+                                  tone="critical"
+                                  onClick={() => removeField(field.id)}
                                 />
-                              </InlineStack>
-                            ))}
-                            <Button variant="plain" onClick={() => addOption(field.id)}>Add Option</Button>
+                              )}
+                            </InlineStack>
+
+                            <InlineStack gap="300">
+                              <div style={{ flex: 2 }}>
+                                <TextField
+                                  label="Field Label"
+                                  value={field.label}
+                                  onChange={(val) => updateField(field.id, "label", val)}
+                                  autoComplete="off"
+                                />
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <Select
+                                  label="Type"
+                                  options={fieldTypes}
+                                  value={field.type}
+                                  onChange={(val) => updateField(field.id, "type", val)}
+                                  disabled={!field.deletable}
+                                />
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <Select
+                                  label="Width"
+                                  options={fieldWidths}
+                                  value={field.width || "100"}
+                                  onChange={(val) => updateField(field.id, "width", val)}
+                                />
+                              </div>
+                            </InlineStack>
+
+                            <InlineStack gap="300">
+                              <div style={{ flex: 1 }}>
+                                <TextField
+                                  label="Placeholder"
+                                  value={field.placeholder || ""}
+                                  onChange={(val) => updateField(field.id, "placeholder", val)}
+                                  autoComplete="off"
+                                  placeholder="e.g. Enter your name"
+                                />
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <TextField
+                                  label="Help Text (Small information)"
+                                  value={field.helpText || ""}
+                                  onChange={(val) => updateField(field.id, "helpText", val)}
+                                  autoComplete="off"
+                                  placeholder="e.g. We'll never share your email."
+                                />
+                              </div>
+                            </InlineStack>
+
+                            {["radio", "select", "checkbox"].includes(field.type) && (
+                              <Box paddingBlockStart="200">
+                                <BlockStack gap="200">
+                                  <Text variant="bodySm" fontWeight="bold">Options</Text>
+                                  {field.options?.map((option, idx) => (
+                                    <InlineStack key={idx} gap="200" align="start">
+                                      <div style={{ flex: 1 }}>
+                                        <TextField
+                                          value={option}
+                                          onChange={(val) => updateOption(field.id, idx, val)}
+                                          autoComplete="off"
+                                          placeholder={`Option ${idx + 1}`}
+                                        />
+                                      </div>
+                                      <Button
+                                        icon={DeleteIcon}
+                                        onClick={() => removeOption(field.id, idx)}
+                                        variant="plain"
+                                      />
+                                    </InlineStack>
+                                  ))}
+                                  <Button variant="plain" onClick={() => addOption(field.id)}>Add Option</Button>
+                                </BlockStack>
+                              </Box>
+                            )}
                           </BlockStack>
                         </Box>
-                      )}
+                      ))}
+                      <Button icon={PlusIcon} onClick={addField}>Add Field</Button>
                     </BlockStack>
-                  </Box>
-                ))}
-                <Button icon={PlusIcon} onClick={addField}>Add Field</Button>
-              </BlockStack>
-            </Card>
-
-            <Card title="Submit Button">
-              <BlockStack gap="400">
-                <Text variant="headingMd" as="h2">Submit Button Customization</Text>
-                <TextField
-                  label="Button Text"
-                  value={submitText}
-                  onChange={setSubmitText}
-                  autoComplete="off"
-                />
-                <BlockStack gap="200">
-                  <Text variant="bodyMd">Button Color</Text>
-                  <InlineStack gap="400" blockAlign="center">
-                    <ColorPicker color={colorHsb} onChange={handleColorChange} />
-                    <Box padding="200" background="bg-surface-secondary" borderRadius="100" borderWidth="025" borderColor="border">
-                      <Text variant="bodyMd" fontWeight="bold">{submitColor.toUpperCase()}</Text>
-                    </Box>
-                  </InlineStack>
-                </BlockStack>
-                <div style={{ marginTop: '10px' }}>
-                  <Text variant="bodySm">Preview:</Text>
-                  <button
-                    style={{
-                      backgroundColor: submitColor,
-                      color: 'white',
-                      padding: '10px 20px',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'default',
-                      marginTop: '5px'
-                    }}
-                  >
-                    {submitText}
-                  </button>
-                </div>
-              </BlockStack>
-            </Card>
+                  </Card>
+                ) : (
+                  <Card>
+                    <BlockStack gap="400">
+                      <Text variant="headingMd" as="h2">Submit Button Customization</Text>
+                      <TextField
+                        label="Button Text"
+                        value={submitText}
+                        onChange={setSubmitText}
+                        autoComplete="off"
+                      />
+                      <Select
+                        label="Button Width"
+                        options={[
+                          { label: "Full Width (100%)", value: "100" },
+                          { label: "Centered (Auto)", value: "auto" },
+                        ]}
+                        value={submitWidth}
+                        onChange={setSubmitWidth}
+                      />
+                      <BlockStack gap="200">
+                        <Text variant="bodyMd">Button Color</Text>
+                        <InlineStack gap="400" blockAlign="center">
+                          <ColorPicker color={colorHsb} onChange={handleColorChange} />
+                          <Box padding="200" background="bg-surface-secondary" borderRadius="100" borderWidth="025" borderColor="border">
+                            <Text variant="bodyMd" fontWeight="bold">{submitColor.toUpperCase()}</Text>
+                          </Box>
+                        </InlineStack>
+                      </BlockStack>
+                    </BlockStack>
+                  </Card>
+                )}
+              </Box>
+            </Tabs>
           </BlockStack>
         </Layout.Section>
 
@@ -401,10 +410,10 @@ export default function NewForm() {
                 <Box padding="400" background="bg-surface-tertiary" borderRadius="200" borderWidth="025" borderColor="border">
                   <Text variant="headingMd" as="h3" alignment="center">{title || "Form Preview"}</Text>
                   <Box paddingBlockStart="400">
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(6, 1fr)',
-                      gap: '12px'
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(6, 1fr)', 
+                      gap: '12px' 
                     }}>
                       {fields.map((field) => {
                         const gridSpan = field.width === '33' ? 'span 2' : field.width === '50' ? 'span 3' : 'span 6';
@@ -460,12 +469,16 @@ export default function NewForm() {
                       })}
                     </div>
 
-                    <div style={{ marginTop: '24px' }}>
+                    <div style={{ 
+                      marginTop: '24px', 
+                      display: 'flex', 
+                      justifyContent: submitWidth === 'auto' ? 'center' : 'stretch' 
+                    }}>
                       <button style={{
-                        width: '100%',
+                        width: submitWidth === 'auto' ? 'auto' : '100%',
                         backgroundColor: submitColor,
                         color: 'white',
-                        padding: '12px',
+                        padding: '12px 24px',
                         border: 'none',
                         borderRadius: '6px',
                         fontWeight: 'bold',
@@ -478,7 +491,7 @@ export default function NewForm() {
                 </Box>
                 <Divider />
                 <Text variant="bodySm" tone="subdued">
-                  Tip: Use the "Width" setting to align fields side-by-side (e.g., First Name and Last Name at 50% each).
+                  Tip: Use the "Submit Button" tab to change the button color and text.
                 </Text>
               </BlockStack>
             </Card>
