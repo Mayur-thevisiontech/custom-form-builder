@@ -175,7 +175,7 @@ function SortableField({ field, index, updateField, removeField, addOption, upda
             <Box paddingBlockStart="200" paddingBlockEnd="100">
               <Card background="bg-surface-tertiary">
                 <BlockStack gap="300">
-                  <Text variant="headingXs" fontWeight="bold">Options Configuration</Text>
+                  <Text variant="headingXs" fontWeight="bold">Options value</Text>
                   {field.options?.map((option, idx) => (
                     <InlineStack key={idx} gap="200" align="start">
                       <div style={{ flex: 1 }}>
@@ -245,55 +245,67 @@ export default function NewForm() {
 
   const handleTabChange = useCallback((selectedTabIndex) => setSelectedTab(selectedTabIndex), []);
 
-  const fieldTypes = [
-    { 
-      label: "Text", 
-      value: "text", 
-      description: "Single line text input",
-      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M3 5.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5z" clipRule="evenodd" /></svg>
+  const fieldTypeOptions = [
+    { label: "Text", value: "text" },
+    { label: "Email", value: "email" },
+    { label: "Textarea", value: "textarea" },
+    { label: "Checkbox", value: "checkbox" },
+    { label: "Radio", value: "radio" },
+    { label: "Dropdown", value: "select" },
+    { label: "File Upload", value: "file" },
+    { label: "Phone", value: "phone" },
+  ];
+
+  const availableFieldTypes = [
+    {
+      label: "Text Box",
+      value: "text",
+      description: "Generic single-line text input",
+      icon: <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="16" width="40" height="16" rx="4" stroke="currentColor" strokeWidth="2" /><line x1="8" y1="24" x2="16" y2="24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
     },
-    { 
-      label: "Email", 
-      value: "email", 
-      description: "Validates email address",
-      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0 0 16 4H4a2 2 0 0 0-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.118z" /></svg>
+
+    {
+      label: "Email",
+      value: "email",
+      description: "Validates email address format",
+      icon: <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="12" width="40" height="24" rx="4" stroke="currentColor" strokeWidth="2" /><path d="M4 16L24 28L44 16" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
     },
-    { 
-      label: "Textarea", 
-      value: "textarea", 
+    {
+      label: "Phone No",
+      value: "phone",
+      description: "With country code selection",
+      icon: <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="4" width="24" height="40" rx="4" stroke="currentColor" strokeWidth="2" /><circle cx="24" cy="38" r="2" fill="currentColor" /></svg>
+    },
+    {
+      label: "Textarea",
+      value: "textarea",
       description: "Multi-line text input",
-      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M3 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4zm2 1.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z" clipRule="evenodd" /></svg>
+      icon: <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="40" height="32" rx="4" stroke="currentColor" strokeWidth="2" /><line x1="10" y1="16" x2="38" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><line x1="10" y1="24" x2="38" y2="24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><line x1="10" y1="32" x2="24" y2="32" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
     },
-    { 
-      label: "Checkbox", 
-      value: "checkbox", 
+    {
+      label: "Checkbox",
+      value: "checkbox",
       description: "Multiple choice (can select many)",
-      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M16 4H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM8.293 13.707a1 1 0 0 1-1.414 0l-3-3a1 1 0 0 1 1.414-1.414L7.586 11.586l6.707-6.707a1 1 0 0 1 1.414 1.414l-7.414 7.414z" clipRule="evenodd" /></svg>
+      icon: <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="14" y="14" width="20" height="20" rx="4" stroke="currentColor" strokeWidth="2" /><path d="M20 24L23 27L29 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
     },
-    { 
-      label: "Radio", 
-      value: "radio", 
+    {
+      label: "Radio",
+      value: "radio",
       description: "Multiple choice (select one)",
-      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z" clipRule="evenodd" /></svg>
+      icon: <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="10" stroke="currentColor" strokeWidth="2" /><circle cx="24" cy="24" r="4" fill="currentColor" /></svg>
     },
-    { 
-      label: "Dropdown", 
-      value: "select", 
+    {
+      label: "Dropdown",
+      value: "select",
       description: "Select from a dropdown list",
-      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M3 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4zm2 2v2h10V6H5zm0 4v2h6v-2H5zm0 4v2h10v-2H5z" clipRule="evenodd" /></svg>
+      icon: <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="16" width="36" height="16" rx="4" stroke="currentColor" strokeWidth="2" /><path d="M34 22L38 26L42 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
     },
-    { 
-      label: "File Upload", 
-      value: "file", 
+    {
+      label: "File Upload",
+      value: "file",
       description: "Upload an attachment",
-      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path fillRule="evenodd" d="M6 2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.414A2 2 0 0 0 15.414 6L12 2.586A2 2 0 0 0 10.586 2H6zm5 6a1 1 0 1 0-2 0v3.586l-1.293-1.293a1 1 0 1 0-1.414 1.414l3 3a1 1 0 0 0 1.414 0l3-3a1 1 0 0 0-1.414-1.414L11 11.586V8z" clipRule="evenodd" /></svg>
-    },
-    { 
-      label: "Phone", 
-      value: "phone", 
-      description: "Phone number with country code",
-      icon: <svg viewBox="0 0 20 20" fill="currentColor" width="24" height="24"><path d="M2 3a1 1 0 0 1 1-1h2.153a1 1 0 0 1 .986.836l.74 4.438a1 1 0 0 1-.328.931L4.85 9.77a13.013 13.013 0 0 0 5.38 5.38l1.564-1.701a1 1 0 0 1 .93-.327l4.438.74a1 1 0 0 1 .836.986V17a1 1 0 0 1-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
-    },
+      icon: <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="12" width="36" height="24" rx="4" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" /><path d="M24 18V30M20 22L24 18L28 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    }
   ];
 
   const fieldWidths = [
@@ -498,7 +510,7 @@ export default function NewForm() {
                                 addOption={addOption}
                                 updateOption={updateOption}
                                 removeOption={removeOption}
-                                fieldTypes={fieldTypes}
+                                fieldTypes={fieldTypeOptions}
                                 fieldWidths={fieldWidths}
                               />
                             ))}
@@ -668,7 +680,7 @@ export default function NewForm() {
       <Modal
         open={isAddFieldModalOpen}
         onClose={() => setIsAddFieldModalOpen(false)}
-        title="Select Field Type"
+        title="Select Your Field"
       >
         <Modal.Section>
           <div style={{
@@ -676,37 +688,48 @@ export default function NewForm() {
             gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
             gap: '16px'
           }}>
-            {fieldTypes.map((ft) => (
-              <div 
-                key={ft.value} 
-                onClick={() => addField(ft.value, ft.label)}
-                style={{
-                  border: '1px solid #c9cccf',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  backgroundColor: 'white',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.borderColor = '#008060';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.borderColor = '#c9cccf';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div style={{ color: '#008060', marginBottom: '12px' }}>
-                  {ft.icon}
+            {availableFieldTypes.map((ft) => {
+              const isAlreadyAdded = ["First Name", "Last Name", "Email"].includes(ft.label) && fields.some(f => f.label === ft.label);
+
+              return (
+                <div
+                  key={ft.label}
+                  onClick={() => !isAlreadyAdded && addField(ft.value, ft.label)}
+                  style={{
+                    border: '1px solid #c9cccf',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    textAlign: 'center',
+                    cursor: isAlreadyAdded ? 'not-allowed' : 'pointer',
+                    backgroundColor: isAlreadyAdded ? '#f4f6f8' : 'white',
+                    opacity: isAlreadyAdded ? 0.5 : 1,
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseOver={(e) => {
+                    if (!isAlreadyAdded) {
+                      e.currentTarget.style.borderColor = '#008060';
+                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (!isAlreadyAdded) {
+                      e.currentTarget.style.borderColor = '#c9cccf';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }
+                  }}
+                >
+                  <div style={{ color: isAlreadyAdded ? '#8c9196' : '#008060', marginBottom: '12px' }}>
+                    {ft.icon}
+                  </div>
+                  <Text variant="bodyMd" fontWeight="bold">{ft.label}</Text>
+                  <div style={{ marginTop: '4px' }}>
+                    <Text variant="bodySm" tone="subdued">
+                      {isAlreadyAdded ? "Already added" : ft.description}
+                    </Text>
+                  </div>
                 </div>
-                <Text variant="bodyMd" fontWeight="bold">{ft.label}</Text>
-                <div style={{ marginTop: '4px' }}>
-                  <Text variant="bodySm" tone="subdued">{ft.description}</Text>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </Modal.Section>
       </Modal>
