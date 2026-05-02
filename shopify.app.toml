@@ -1,0 +1,68 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "b080dd61b1b616a77f3544ce39b2d9f4"
+application_url = "https://app.thevisiontech.com/index.php"
+embedded = true
+name = "Custom form builder"
+handle = "custom-form-builder-7"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products,write_files"
+
+[[proxies]]
+url = "/apps/custom-form-builder"
+subpath = "submit"
+prefix = "apps"
+
+[product.metafields.app.demo_info]
+type = "single_line_text_field"
+name = "Demo Source Info"
+description = "Tracks products created by the Shopify app template for development"
+
+  [product.metafields.app.demo_info.access]
+  admin = "merchant_read_write"
+
+[metaobjects.app.example]
+name = "Example"
+description = "An example metaobject definition created by this template"
+
+  [metaobjects.app.example.access]
+  admin = "merchant_read_write"
+
+[metaobjects.app.example.fields.title]
+name = "Title"
+type = "single_line_text_field"
+required = true
+
+[metaobjects.app.example.fields.description]
+name = "Description"
+type = "multi_line_text_field"
+
+[webhooks]
+api_version = "2025-01"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = [ "app/uninstalled" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/scopes_update"
+  topics = [ "app/scopes_update" ]
+
+[pos]
+embedded = false
+
+[app_preferences]
+url = "https://app.thevisiontech.com/index.php"
+
+[auth]
+redirect_urls = [
+  "https://app.thevisiontech.com/index.php",
+  "https://app.thevisiontech.com/install.php",
+  "https://app.thevisiontech.com/token.php"
+]
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
