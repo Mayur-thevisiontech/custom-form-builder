@@ -22,7 +22,7 @@ import {
   Tooltip,
   Modal,
 } from "@shopify/polaris";
-import { DeleteIcon, PlusIcon, DragHandleIcon } from "@shopify/polaris-icons";
+import { DeleteIcon, PlusIcon, DragHandleIcon, InfoIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 
@@ -70,8 +70,8 @@ export const action = async ({ request }) => {
 };
 
 const DEFAULT_FIELDS = [
-  { id: "first_name", type: "text", label: "First Name", required: true, deletable: false, width: "50" },
-  { id: "email", type: "email", label: "Email", required: true, deletable: false, width: "100" },
+  { id: "first_name", type: "text", label: "First Name", required: true, showLabel: true, deletable: false, width: "50" },
+  { id: "email", type: "email", label: "Email", required: true, showLabel: true, deletable: false, width: "100" },
 ];
 
 function SortableField({ field, index, updateField, removeField, addOption, updateOption, removeOption, fieldTypes, fieldWidths }) {
@@ -140,12 +140,17 @@ function SortableField({ field, index, updateField, removeField, addOption, upda
                 onChange={(val) => updateField(field.id, "width", val)}
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', height: '100%', paddingTop: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', height: '100%', paddingTop: '24px', gap: '16px' }}>
               <Checkbox
                 label="Required"
                 checked={field.required}
                 onChange={(val) => updateField(field.id, "required", val)}
                 disabled={!field.deletable && field.required}
+              />
+              <Checkbox
+                label="Show Label"
+                checked={field.showLabel !== false}
+                onChange={(val) => updateField(field.id, "showLabel", val)}
               />
             </div>
           </InlineStack>
@@ -320,6 +325,7 @@ export default function NewForm() {
       type,
       label,
       required: false,
+      showLabel: true,
       deletable: true,
       options: ["radio", "select", "checkbox"].includes(type) ? ["Option 1", "Option 2"] : [],
       width: "100",
@@ -577,7 +583,18 @@ export default function NewForm() {
                         return (
                           <div key={field.id} style={{ gridColumn: gridSpan }}>
                             <BlockStack gap="100">
-                              <Text variant="bodyMd" fontWeight="bold">{field.label} {field.required && <span style={{ color: 'red' }}>*</span>}</Text>
+                              {field.showLabel !== false && (
+                                <InlineStack gap="100" blockAlign="center">
+                                  <Text variant="bodyMd" fontWeight="bold">{field.label} {field.required && <span style={{ color: 'red' }}>*</span>}</Text>
+                                  {field.helpText && (
+                                    <Tooltip content={field.helpText}>
+                                      <div style={{ display: 'flex', alignItems: 'center', cursor: 'help' }}>
+                                        <Icon source={InfoIcon} tone="subdued" />
+                                      </div>
+                                    </Tooltip>
+                                  )}
+                                </InlineStack>
+                              )}
 
                               {/* Rich Field Rendering */}
                               {field.type === "textarea" ? (
@@ -635,10 +652,6 @@ export default function NewForm() {
                                   <Text variant="bodySm" tone="subdued">{field.placeholder || `Enter ${field.label.toLowerCase()}...`}</Text>
                                 </div>
                               )}
-
-                              {field.helpText && (
-                                <Text variant="bodyXs" tone="subdued">{field.helpText}</Text>
-                              )}
                             </BlockStack>
                           </div>
                         );
@@ -689,7 +702,7 @@ export default function NewForm() {
             gap: '16px'
           }}>
             {availableFieldTypes.map((ft) => {
-              const isAlreadyAdded = ["First Name", "Last Name", "Email"].includes(ft.label) && fields.some(f => f.label === ft.label);
+              const isAlreadyAdded = ["First Name", "Email"].includes(ft.label) && fields.some(f => f.label === ft.label);
 
               return (
                 <div
