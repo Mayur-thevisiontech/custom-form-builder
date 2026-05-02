@@ -450,17 +450,35 @@ export default function NewForm() {
                                 </div>
                               ) : field.type === "select" ? (
                                 <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', background: 'white', display: 'flex', justifyContent: 'space-between' }}>
-                                  <Text variant="bodySm" tone="subdued">{field.placeholder || "Select option..."}</Text>
+                                  <Text variant="bodySm" tone={field.defaultValue ? undefined : "subdued"}>
+                                    {field.defaultValue || field.placeholder || "Select option..."}
+                                  </Text>
                                   <Text variant="bodySm">▼</Text>
                                 </div>
                               ) : field.type === "radio" || field.type === "checkbox" ? (
                                 <BlockStack gap="100">
-                                  {field.options?.map((opt, i) => (
-                                    <InlineStack key={i} gap="200">
-                                      <div style={{ width: '14px', height: '14px', border: '1px solid #ddd', borderRadius: field.type === 'radio' ? '50%' : '2px', background: 'white' }} />
-                                      <Text variant="bodySm">{opt}</Text>
-                                    </InlineStack>
-                                  ))}
+                                  {field.options?.map((opt, i) => {
+                                    const isDefault = field.defaultValue === opt;
+                                    const isChecked = field.type === "radio" ? isDefault : false;
+                                    return (
+                                      <InlineStack key={i} gap="200">
+                                        <div style={{
+                                          width: '14px',
+                                          height: '14px',
+                                          border: `2px solid ${isChecked ? submitColor : '#ddd'}`,
+                                          borderRadius: field.type === 'radio' ? '50%' : '2px',
+                                          background: isChecked ? submitColor : 'white',
+                                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                          flexShrink: 0,
+                                        }}>
+                                          {isChecked && (
+                                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'white' }} />
+                                          )}
+                                        </div>
+                                        <Text variant="bodySm" fontWeight={isDefault ? 'bold' : undefined}>{opt}</Text>
+                                      </InlineStack>
+                                    );
+                                  })}
                                 </BlockStack>
                               ) : field.type === "phone" ? (
                                 <InlineStack gap="0">
