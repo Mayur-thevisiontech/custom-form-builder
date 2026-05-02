@@ -365,6 +365,18 @@ export default function NewForm() {
                                     </InlineStack>
                                   ))}
                                   <Button variant="plain" onClick={() => addOption(field.id)}>Add Option</Button>
+
+                                  {["radio", "select"].includes(field.type) && field.options?.length > 0 && (
+                                    <Select
+                                      label="Default Value"
+                                      options={[
+                                        { label: "-- No Default --", value: "" },
+                                        ...(field.options || []).map((opt) => ({ label: opt, value: opt })),
+                                      ]}
+                                      value={field.defaultValue || ""}
+                                      onChange={(val) => updateField(field.id, "defaultValue", val)}
+                                    />
+                                  )}
                                 </BlockStack>
                               </Box>
                             )}
