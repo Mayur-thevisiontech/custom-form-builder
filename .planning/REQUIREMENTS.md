@@ -44,7 +44,31 @@
 | Analytics Dashboard | Basic submission counting is enough; full analytics deferred to v2. |
 
 ## Traceability
-(To be populated during roadmap creation)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| FND-01 | Phase 1 | Pending |
+| FND-02 | Phase 1 | Pending |
+| FND-03 | Phase 1 | Pending |
+| BLD-01 | Phase 2 | Pending |
+| BLD-02 | Phase 3 | Pending |
+| BLD-03 | Phase 3 | Pending |
+| BLD-04 | Phase 3 | Pending |
+| BLD-05 | Phase 4 | Pending |
+| EXT-01 | Phase 5 | Pending |
+| EXT-02 | Phase 5 | Pending |
+| EXT-03 | Phase 5 | Pending |
+| EXT-04 | Phase 5 | Pending |
+| EXT-05 | Phase 5 | Pending |
+| DAT-01 | Phase 6 | Pending |
+| DAT-02 | Phase 6 | Pending |
+| DAT-03 | Phase 6 | Pending |
+| DAT-04 | Phase 6 | Pending |
+
+**Coverage:**
+- v1 requirements: 17 total
+- Mapped to phases: 17
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-02*
