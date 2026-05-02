@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { json, redirect } from "react-router";
+import { redirect } from "react-router";
 import { useFetcher, useNavigate } from "react-router";
 import {
   Page,
@@ -26,7 +26,7 @@ export const loader = async ({ request }) => {
 export const action = async ({ request }) => {
   const { session } = await authenticate.admin(request);
   const formData = await request.formData();
-  
+
   const title = formData.get("title");
   const schema = JSON.parse(formData.get("schema"));
   const settings = JSON.parse(formData.get("settings"));
@@ -181,7 +181,7 @@ export default function NewForm() {
             </Card>
           </BlockStack>
         </Layout.Section>
-        
+
         <Layout.Section variant="oneThird">
           <Card>
             <BlockStack gap="200">

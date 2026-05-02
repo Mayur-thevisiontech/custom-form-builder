@@ -1,4 +1,3 @@
-import { json } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { Page, Layout, Card, ResourceList, ResourceItem, Text, Button, EmptyState } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
@@ -11,7 +10,7 @@ export const loader = async ({ request }) => {
     orderBy: { createdAt: "desc" },
   });
 
-  return json({ forms });
+  return { forms };
 };
 
 export const action = async ({ request }) => {
@@ -23,10 +22,10 @@ export const action = async ({ request }) => {
     await prisma.form.delete({
       where: { id: String(id) },
     });
-    return json({ success: true });
+    return { success: true };
   }
 
-  return json({ success: false });
+  return { success: false };
 };
 
 export default function FormsIndex() {
