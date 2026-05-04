@@ -299,6 +299,7 @@ export default function NewForm() {
   const [submitText, setSubmitText] = useState("Submit");
   const [submitColor, setSubmitColor] = useState("#008060");
   const [submitWidth, setSubmitWidth] = useState("100");
+  const [notificationEmails, setNotificationEmails] = useState("");
 
   const [previewState, setPreviewState] = useState({});
   const handlePreviewChange = (fieldId, val) => {
@@ -315,6 +316,7 @@ export default function NewForm() {
   const tabs = [
     { id: "fields", content: "Form Fields", accessibilityLabel: "Form Fields", panelID: "fields-panel" },
     { id: "submit", content: "Submit Button", accessibilityLabel: "Submit Button", panelID: "submit-panel" },
+    { id: "notifications", content: "Notifications", accessibilityLabel: "Notifications", panelID: "notifications-panel" },
   ];
 
   const handleTabChange = useCallback((selectedTabIndex) => setSelectedTab(selectedTabIndex), []);
@@ -524,7 +526,7 @@ export default function NewForm() {
       {
         title,
         schema: JSON.stringify(fields),
-        settings: JSON.stringify({ submitText, submitColor, submitWidth }),
+        settings: JSON.stringify({ submitText, submitColor, submitWidth, notificationEmails }),
       },
       { method: "POST" }
     );
@@ -640,7 +642,7 @@ export default function NewForm() {
                     </Box>
                   </BlockStack>
                 </Card>
-              ) : (
+              ) : selectedTab === 1 ? (
                 <Card>
                   <BlockStack gap="400">
                     <Text variant="headingMd" as="h2">Submit Button Customization</Text>
@@ -668,6 +670,23 @@ export default function NewForm() {
                         </Box>
                       </InlineStack>
                     </BlockStack>
+                  </BlockStack>
+                </Card>
+              ) : (
+                <Card>
+                  <BlockStack gap="400">
+                    <Text variant="headingMd" as="h2">Email Notifications</Text>
+                    <Text variant="bodyMd" tone="subdued">
+                      Enter the email addresses that should receive a notification when this form is submitted. Separate multiple emails with a comma.
+                    </Text>
+                    <TextField
+                      label="Receive Emails"
+                      value={notificationEmails}
+                      onChange={setNotificationEmails}
+                      autoComplete="off"
+                      placeholder="e.g. admin@store.com, sales@store.com"
+                      helpText="If left empty, no email notifications will be sent."
+                    />
                   </BlockStack>
                 </Card>
               )}
