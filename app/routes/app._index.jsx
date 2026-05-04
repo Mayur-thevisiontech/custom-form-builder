@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLoaderData, useNavigate } from "react-router";
+import { useEffect } from "react";
+import { useLoaderData, useNavigate, useRevalidator } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
@@ -28,20 +28,55 @@ const CircleOutlineIcon = () => (
 );
 
 export const loader = async ({ request }) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const forms = await prisma.form.findMany({ where: { shop: session.shop } });
   
-  const themeUrl = `https://${session.shop}/admin/themes/current/editor?context=apps`;
+  let appEnabled = false;
+  try {
+    const themesRes = await admin.rest.get({ path: 'themes.json' });
+    const themesData = await themesRes.json();
+    const mainTheme = themesData.themes.find(t => t.role === 'main');
+    
+    if (mainTheme) {
+      const assetRes = await admin.rest.get({ path: `themes/${mainTheme.id}/assets.json?asset[key]=config/settings_data.json` });
+      const assetData = await assetRes.json();
+      if (assetData?.asset?.value) {
+        const settings = JSON.parse(assetData.asset.value);
+        const blocks = settings?.current?.blocks || {};
+        
+        const embedBlock = Object.values(blocks).find(b => b.type && b.type.includes('form-embed'));
+        if (embedBlock && embedBlock.disabled === false) {
+          appEnabled = true;
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching theme settings:", err);
+  }
+  
+  const extensionId = process.env.SHOPIFY_FORM_EMBED_ID;
+  const themeUrl = extensionId 
+    ? `https://${session.shop}/admin/themes/current/editor?context=apps&activateAppId=${extensionId}/app_embed`
+    : `https://${session.shop}/admin/themes/current/editor?context=apps`;
 
-  return { forms, themeUrl };
+  return { forms, themeUrl, appEnabled };
 };
 
 export default function Index() {
-  const { forms, themeUrl } = useLoaderData();
+  const { forms, themeUrl, appEnabled } = useLoaderData();
   const navigate = useNavigate();
   const shopify = useAppBridge();
+  const revalidator = useRevalidator();
 
-  const [appEnabled, setAppEnabled] = useState(true);
+  useEffect(() => {
+    const handleFocus = () => {
+      if (revalidator.state === "idle") {
+        revalidator.revalidate();
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [revalidator]);
   const hasCreatedForm = forms.length > 0;
   
   const firstFormId = forms.length > 0 ? forms[0].id : "No form created yet";
@@ -69,12 +104,7 @@ export default function Index() {
                   )}
                 </InlineStack>
                 <Button 
-                  onClick={() => {
-                    setAppEnabled(!appEnabled);
-                    if (!appEnabled) {
-                      open(themeUrl, '_blank');
-                    }
-                  }}
+                  onClick={() => open(themeUrl, '_blank')}
                 >
                   {appEnabled ? "Disable app" : "Enable app"}
                 </Button>
