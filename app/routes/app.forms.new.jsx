@@ -678,145 +678,180 @@ export default function NewForm() {
               <BlockStack gap="400">
                 <Text variant="headingLg" as="h2">Live Preview</Text>
                 <Divider />
-                <Box padding="500" background="bg-surface-tertiary" borderRadius="300" borderWidth="025" borderColor="border">
-                  <Text variant="headingLg" as="h3" alignment="center">{title || "Form Preview"}</Text>
-                  <Box paddingBlockStart="500">
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(6, 1fr)',
-                      gap: '16px'
-                    }}>
-                      {fields.map((field) => {
-                        // Conditional Logic Check
-                        if (field.logic && field.logic.triggerFieldId && field.logic.triggerValue) {
-                          const triggerField = fields.find(f => f.id === field.logic.triggerFieldId);
-                          const currentVal = previewState[field.logic.triggerFieldId] !== undefined ? previewState[field.logic.triggerFieldId] : triggerField?.defaultValue || "";
+                <div style={{
+                  padding: '32px',
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+                  border: '1px solid #e1e3e5',
+                  fontFamily: '"Outfit", sans-serif'
+                }}>
+                  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+                  <h3 style={{ fontSize: '24px', fontWeight: '600', color: '#111827', textAlign: 'center', margin: '0 0 32px 0' }}>
+                    {title || "Form Preview"}
+                  </h3>
 
-                          const valsArray = Array.isArray(currentVal) ? currentVal : [currentVal];
-                          const conditionMet = valsArray.includes(field.logic.triggerValue);
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(6, 1fr)',
+                    gap: '24px 16px'
+                  }}>
+                    {fields.map((field) => {
+                      // Conditional Logic Check
+                      if (field.logic && field.logic.triggerFieldId && field.logic.triggerValue) {
+                        const triggerField = fields.find(f => f.id === field.logic.triggerFieldId);
+                        const currentVal = previewState[field.logic.triggerFieldId] !== undefined ? previewState[field.logic.triggerFieldId] : triggerField?.defaultValue || "";
 
-                          if (field.logic.action === "show" && !conditionMet) return null;
-                          if (field.logic.action === "hide" && conditionMet) return null;
-                        }
+                        const valsArray = Array.isArray(currentVal) ? currentVal : [currentVal];
+                        const conditionMet = valsArray.includes(field.logic.triggerValue);
 
-                        const gridSpan = field.width === '33' ? 'span 2' : field.width === '50' ? 'span 3' : 'span 6';
-                        return (
-                          <div key={field.id} style={{ gridColumn: gridSpan }}>
-                            <BlockStack gap="100">
-                              {field.showLabel !== false && (
-                                <InlineStack gap="100" blockAlign="center">
-                                  <Text variant="bodyMd" fontWeight="bold">{field.label} {field.required && <span style={{ color: 'red' }}>*</span>}</Text>
-                                  {field.helpText && (
-                                    <Tooltip content={field.helpText}>
-                                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <Icon source={InfoIcon} tone="subdued" />
+                        if (field.logic.action === "show" && !conditionMet) return null;
+                        if (field.logic.action === "hide" && conditionMet) return null;
+                      }
+
+                      const gridSpan = field.width === '33' ? 'span 2' : field.width === '50' ? 'span 3' : 'span 6';
+
+                      const inputStyle = {
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb',
+                        backgroundColor: '#f9fafb',
+                        fontSize: '15px',
+                        color: '#374151',
+                        transition: 'all 0.2s',
+                        boxSizing: 'border-box'
+                      };
+
+                      return (
+                        <div key={field.id} style={{ gridColumn: gridSpan }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {field.showLabel !== false && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', margin: 0 }}>
+                                  {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
+                                </label>
+                                {field.helpText && (
+                                  <Tooltip content={field.helpText}>
+                                    <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                      <Icon source={InfoIcon} tone="subdued" />
+                                    </div>
+                                  </Tooltip>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Rich Field Rendering */}
+                            {field.type === "textarea" ? (
+                              <div style={{ ...inputStyle, minHeight: '100px' }}>
+                                <span style={{ color: '#9ca3af' }}>{field.placeholder || `Enter ${field.label.toLowerCase()}...`}</span>
+                              </div>
+                            ) : field.type === "select" ? (
+                              <div style={{ position: 'relative' }}>
+                                <select
+                                  value={previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue || ""}
+                                  onChange={(e) => handlePreviewChange(field.id, e.target.value)}
+                                  style={{ ...inputStyle, appearance: 'none', cursor: 'pointer', color: (previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue) ? '#374151' : '#9ca3af' }}
+                                >
+                                  <option value="">{field.placeholder || "Select option..."}</option>
+                                  {field.options?.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
+                                </select>
+                                <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#9ca3af' }}>
+                                  ▼
+                                </div>
+                              </div>
+                            ) : field.type === "radio" || field.type === "checkbox" ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '4px' }}>
+                                {field.options?.map((opt, i) => {
+                                  const currentVal = previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue || (field.type === 'checkbox' ? [] : "");
+                                  const isChecked = field.type === "radio" ? currentVal === opt : (Array.isArray(currentVal) && currentVal.includes(opt));
+
+                                  return (
+                                    <div key={i} onClick={() => {
+                                      if (field.type === "radio") {
+                                        handlePreviewChange(field.id, opt);
+                                      } else {
+                                        const arr = Array.isArray(currentVal) ? currentVal : [];
+                                        handlePreviewChange(field.id, arr.includes(opt) ? arr.filter(v => v !== opt) : [...arr, opt]);
+                                      }
+                                    }} style={{
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '12px',
+                                      padding: '12px 16px',
+                                      borderRadius: '8px',
+                                      border: `1px solid ${isChecked ? submitColor : '#e5e7eb'}`,
+                                      backgroundColor: isChecked ? `${submitColor}08` : '#ffffff',
+                                      transition: 'all 0.2s'
+                                    }}>
+                                      <div style={{
+                                        width: '18px',
+                                        height: '18px',
+                                        border: `2px solid ${isChecked ? submitColor : '#d1d5db'}`,
+                                        borderRadius: field.type === 'radio' ? '50%' : '4px',
+                                        backgroundColor: isChecked ? submitColor : 'transparent',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        flexShrink: 0,
+                                        transition: 'all 0.2s'
+                                      }}>
+                                        {isChecked && (
+                                          <div style={{ width: '8px', height: '8px', borderRadius: field.type === 'radio' ? '50%' : '2px', backgroundColor: 'white' }} />
+                                        )}
                                       </div>
-                                    </Tooltip>
-                                  )}
-                                </InlineStack>
-                              )}
-
-                              {/* Rich Field Rendering */}
-                              {field.type === "textarea" ? (
-                                <div style={{ border: '1px solid #c9cccf', borderRadius: '4px', padding: '10px', minHeight: '80px', background: 'white', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)' }}>
-                                  <Text variant="bodySm" tone="subdued">{field.placeholder}</Text>
+                                      <span style={{ fontSize: '15px', color: isChecked ? '#111827' : '#4b5563', fontWeight: isChecked ? '500' : '400' }}>{opt}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : field.type === "phone" ? (
+                              <div style={{ display: 'flex' }}>
+                                <div style={{ padding: '12px 16px', border: '1px solid #e5e7eb', borderRight: 'none', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '15px', color: '#4b5563' }}>🇺🇸 +1</span>
                                 </div>
-                              ) : field.type === "select" ? (
-                                <div style={{ position: 'relative' }}>
-                                  <select
-                                    value={previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue || ""}
-                                    onChange={(e) => handlePreviewChange(field.id, e.target.value)}
-                                    style={{ border: '1px solid #c9cccf', borderRadius: '4px', padding: '10px', background: 'white', display: 'flex', justifyContent: 'space-between', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)', width: '100%', appearance: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '14px', color: (previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue) ? 'inherit' : '#8c9196' }}
-                                  >
-                                    <option value="">{field.placeholder || "Select option..."}</option>
-                                    {field.options?.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
-                                  </select>
-                                  <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                                    <Text variant="bodySm">▼</Text>
-                                  </div>
+                                <div style={{ ...inputStyle, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, flex: 1 }}>
+                                  <span style={{ color: '#9ca3af' }}>Phone number</span>
                                 </div>
-                              ) : field.type === "radio" || field.type === "checkbox" ? (
-                                <BlockStack gap="100">
-                                  {field.options?.map((opt, i) => {
-                                    const currentVal = previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue || (field.type === 'checkbox' ? [] : "");
-                                    const isChecked = field.type === "radio" ? currentVal === opt : (Array.isArray(currentVal) && currentVal.includes(opt));
-
-                                    return (
-                                      <div key={i} onClick={() => {
-                                        if (field.type === "radio") {
-                                          handlePreviewChange(field.id, opt);
-                                        } else {
-                                          const arr = Array.isArray(currentVal) ? currentVal : [];
-                                          handlePreviewChange(field.id, arr.includes(opt) ? arr.filter(v => v !== opt) : [...arr, opt]);
-                                        }
-                                      }} style={{ cursor: 'pointer' }}>
-                                        <InlineStack gap="200" blockAlign="center">
-                                          <div style={{
-                                            width: '16px',
-                                            height: '16px',
-                                            border: `2px solid ${isChecked ? submitColor : '#8c9196'}`,
-                                            borderRadius: field.type === 'radio' ? '50%' : '3px',
-                                            background: isChecked ? submitColor : 'white',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            flexShrink: 0,
-                                          }}>
-                                            {isChecked && (
-                                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'white' }} />
-                                            )}
-                                          </div>
-                                          <Text variant="bodyMd" fontWeight={isChecked ? 'bold' : undefined}>{opt}</Text>
-                                        </InlineStack>
-                                      </div>
-                                    );
-                                  })}
-                                </BlockStack>
-                              ) : field.type === "phone" ? (
-                                <InlineStack gap="0">
-                                  <div style={{ border: '1px solid #c9cccf', borderRight: 'none', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', padding: '10px', background: '#f4f6f8', display: 'flex', alignItems: 'center', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)' }}>
-                                    <Text variant="bodySm">🇺🇸 +1</Text>
-                                  </div>
-                                  <div style={{ flex: 1, border: '1px solid #c9cccf', borderTopRightRadius: '4px', borderBottomRightRadius: '4px', padding: '10px', background: 'white', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)' }}>
-                                    <Text variant="bodySm" tone="subdued">Phone number</Text>
-                                  </div>
-                                </InlineStack>
-                              ) : field.type === "file" ? (
-                                <div style={{ border: '2px dashed #babfc3', borderRadius: '8px', padding: '24px', background: '#f4f6f8', textAlign: 'center', cursor: 'pointer' }}>
-                                  <Text variant="bodyMd" fontWeight="bold">Add file</Text>
-                                  <Text variant="bodySm" tone="subdued">or drop files to upload</Text>
-                                </div>
-                              ) : (
-                                <div style={{ border: '1px solid #c9cccf', borderRadius: '4px', padding: '10px', background: 'white', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)' }}>
-                                  <Text variant="bodySm" tone="subdued">{field.placeholder || `Enter ${field.label.toLowerCase()}...`}</Text>
-                                </div>
-                              )}
-                            </BlockStack>
+                              </div>
+                            ) : field.type === "file" ? (
+                              <div style={{ border: '2px dashed #d1d5db', borderRadius: '12px', padding: '32px 24px', backgroundColor: '#f9fafb', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                <div style={{ fontSize: '16px', fontWeight: '500', color: '#374151', marginBottom: '4px' }}>Add file</div>
+                                <div style={{ fontSize: '14px', color: '#6b7280' }}>or drop files to upload</div>
+                              </div>
+                            ) : (
+                              <div style={inputStyle}>
+                                <span style={{ color: '#9ca3af' }}>{field.placeholder || `Enter ${field.label.toLowerCase()}...`}</span>
+                              </div>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                    <div style={{
-                      marginTop: '32px',
-                      display: 'flex',
-                      justifyContent: submitWidth === 'auto' ? 'center' : 'stretch'
+                  <div style={{
+                    marginTop: '40px',
+                    display: 'flex',
+                    justifyContent: submitWidth === 'auto' ? 'center' : 'stretch'
+                  }}>
+                    <button style={{
+                      width: submitWidth === 'auto' ? 'auto' : '100%',
+                      backgroundColor: submitColor,
+                      color: '#ffffff',
+                      padding: '16px 32px',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: 'default',
+                      boxShadow: `0 4px 14px ${submitColor}40`,
+                      transition: 'all 0.2s',
+                      fontFamily: '"Outfit", sans-serif'
                     }}>
-                      <button style={{
-                        width: submitWidth === 'auto' ? 'auto' : '100%',
-                        backgroundColor: submitColor,
-                        color: 'white',
-                        padding: '14px 28px',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        cursor: 'default',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                      }}>
-                        {submitText}
-                      </button>
-                    </div>
-                  </Box>
-                </Box>
+                      {submitText}
+                    </button>
+                  </div>
+                </div>
                 <Divider />
                 <Text variant="bodySm" tone="subdued">
                   Tip: Use the "Submit Button" tab to change the button color and text.
