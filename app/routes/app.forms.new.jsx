@@ -556,11 +556,9 @@ export default function NewForm() {
 
             <div style={{
               display: 'flex',
-              background: '#ebeef0',
-              padding: '6px',
-              borderRadius: '12px',
-              width: '100%',
-              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
+              borderBottom: '1px solid #e1e3e5',
+              gap: '32px',
+              padding: '0 8px',
             }}>
               {tabs.map((tab, index) => {
                 const isActive = selectedTab === index;
@@ -569,23 +567,28 @@ export default function NewForm() {
                     key={tab.id}
                     onClick={() => handleTabChange(index)}
                     style={{
-                      flex: 1,
-                      padding: '12px 24px',
-                      background: isActive ? '#ffffff' : 'transparent',
-                      color: isActive ? '#008060' : '#5c5f62',
+                      padding: '12px 4px',
+                      background: 'transparent',
+                      color: isActive ? '#111827' : '#6b7280',
                       border: 'none',
-                      borderRadius: '8px',
+                      borderBottom: isActive ? '2px solid #111827' : '2px solid transparent',
                       fontSize: '15px',
                       fontWeight: isActive ? '600' : '500',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
-                      boxShadow: isActive ? '0 2px 5px rgba(0,0,0,0.1)' : 'none',
+                      marginBottom: '-1px',
                     }}
                     onMouseOver={(e) => {
-                      if (!isActive) e.currentTarget.style.color = '#202223';
+                      if (!isActive) {
+                        e.currentTarget.style.color = '#374151';
+                        e.currentTarget.style.borderBottom = '2px solid #d1d5db';
+                      }
                     }}
                     onMouseOut={(e) => {
-                      if (!isActive) e.currentTarget.style.color = '#5c5f62';
+                      if (!isActive) {
+                        e.currentTarget.style.color = '#6b7280';
+                        e.currentTarget.style.borderBottom = '2px solid transparent';
+                      }
                     }}
                   >
                     {tab.content}
