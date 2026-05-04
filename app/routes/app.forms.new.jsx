@@ -315,8 +315,8 @@ export default function NewForm() {
 
   const tabs = [
     { id: "fields", content: "Form Fields", accessibilityLabel: "Form Fields", panelID: "fields-panel" },
-    { id: "submit", content: "Submit Button", accessibilityLabel: "Submit Button", panelID: "submit-panel" },
     { id: "notifications", content: "Notifications", accessibilityLabel: "Notifications", panelID: "notifications-panel" },
+    { id: "submit", content: "Submit Button", accessibilityLabel: "Submit Button", panelID: "submit-panel" },
   ];
 
   const handleTabChange = useCallback((selectedTabIndex) => setSelectedTab(selectedTabIndex), []);
@@ -705,8 +705,7 @@ export default function NewForm() {
                   background: '#ffffff',
                   borderRadius: '16px',
                   boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
-                  border: '1px solid #e1e3e5',
-                  fontFamily: '"Outfit", sans-serif'
+                  border: '1px solid #e1e3e5'
                 }}>
                   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
                   <h3 style={{ fontSize: '24px', fontWeight: '600', color: '#111827', textAlign: 'center', margin: '0 0 32px 0' }}>

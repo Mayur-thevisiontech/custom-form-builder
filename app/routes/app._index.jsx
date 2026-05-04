@@ -193,7 +193,7 @@ export default function Index() {
                               </Box>
                             </div>
                             <div className="breakpoint-imgs" style={{ flexShrink: 0 }}>
-                              <img alt="Add to store" data-title="<span className=&quot;translation_missing&quot; title=&quot;translation missing: en.Enable App Feature&quot;>Enable App Feature</span>" style={{ width: '214px', height: '146px' }} loading="lazy" fetchpriority="low" src="/images/third_setup_step.svg" />
+
                             </div>
 
                           </InlineStack>
