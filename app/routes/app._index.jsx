@@ -19,7 +19,13 @@ import {
   TextField,
   Divider,
 } from "@shopify/polaris";
-import { CheckCircleIcon, CircleIcon } from "@shopify/polaris-icons";
+import { CheckCircleIcon } from "@shopify/polaris-icons";
+
+const CircleOutlineIcon = () => (
+  <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" />
+  </svg>
+);
 
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
@@ -109,8 +115,8 @@ export default function Index() {
                     {/* Step 1 */}
                     <Box padding="300">
                       <InlineStack gap="300" blockAlign="start">
-                        <div style={{ color: appEnabled ? '#008060' : '#8c9196' }}>
-                          <Icon source={appEnabled ? CheckCircleIcon : CircleIcon} />
+                        <div style={{ color: appEnabled ? '#008060' : '#8c9196', width: '20px', height: '20px' }}>
+                          <Icon source={appEnabled ? CheckCircleIcon : CircleOutlineIcon} />
                         </div>
                         <BlockStack gap="200">
                           <Text variant="headingSm" as="h3">Enable the app</Text>
@@ -125,8 +131,8 @@ export default function Index() {
                     {/* Step 2 */}
                     <Box padding="300">
                       <InlineStack gap="300" blockAlign="start">
-                        <div style={{ color: hasCreatedForm ? '#008060' : '#8c9196' }}>
-                          <Icon source={hasCreatedForm ? CheckCircleIcon : CircleIcon} />
+                        <div style={{ color: hasCreatedForm ? '#008060' : '#8c9196', width: '20px', height: '20px' }}>
+                          <Icon source={hasCreatedForm ? CheckCircleIcon : CircleOutlineIcon} />
                         </div>
                         <BlockStack gap="200">
                           <Text variant="headingSm" as="h3">Create form</Text>
@@ -141,8 +147,8 @@ export default function Index() {
                     {/* Step 3 */}
                     <Box padding="300" background="bg-surface-secondary" borderRadius="200">
                       <InlineStack gap="300" blockAlign="start">
-                        <div style={{ color: '#8c9196' }}>
-                          <Icon source={CircleIcon} />
+                        <div style={{ color: '#8c9196', width: '20px', height: '20px' }}>
+                          <Icon source={CircleOutlineIcon} />
                         </div>
                         <BlockStack gap="400">
                           <Text variant="headingSm" as="h3">Add the form to your store</Text>
