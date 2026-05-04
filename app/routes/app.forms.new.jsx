@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useFetcher, useNavigate } from "react-router";
 import {
@@ -49,7 +48,7 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
-  const { session } = await authenticate.admin(request);
+  const { session, redirect } = await authenticate.admin(request);
   const formData = await request.formData();
 
   const title = formData.get("title");
@@ -236,13 +235,13 @@ function SortableField({ field, index, updateField, removeField, addOption, upda
                     }
                   }}
                 />
-                
+
                 {field.logic && (
                   <InlineStack gap="300" align="start">
                     <div style={{ flex: 1 }}>
                       <Select
                         label="Action"
-                        options={[{label: "Show this field", value: "show"}, {label: "Hide this field", value: "hide"}]}
+                        options={[{ label: "Show this field", value: "show" }, { label: "Hide this field", value: "hide" }]}
                         value={field.logic.action || "show"}
                         onChange={(val) => updateField(field.id, "logic", { ...field.logic, action: val })}
                       />
@@ -254,7 +253,7 @@ function SortableField({ field, index, updateField, removeField, addOption, upda
                       <Select
                         label="Target Field"
                         options={[
-                          {label: "Select field...", value: ""},
+                          { label: "Select field...", value: "" },
                           ...triggerableFields.map(f => ({ label: f.label, value: f.id }))
                         ]}
                         value={field.logic.triggerFieldId || ""}
@@ -269,14 +268,14 @@ function SortableField({ field, index, updateField, removeField, addOption, upda
                         <Select
                           label="Target Value"
                           options={[
-                            {label: "Select value...", value: ""},
+                            { label: "Select value...", value: "" },
                             ...(allFields.find(f => f.id === field.logic.triggerFieldId)?.options || []).map(opt => ({ label: opt, value: opt }))
                           ]}
                           value={field.logic.triggerValue || ""}
                           onChange={(val) => updateField(field.id, "logic", { ...field.logic, triggerValue: val })}
                         />
                       ) : (
-                        <Select label="Target Value" options={[{label: "Select field first", value: ""}]} disabled />
+                        <Select label="Target Value" options={[{ label: "Select field first", value: "" }]} disabled />
                       )}
                     </div>
                   </InlineStack>
@@ -300,7 +299,7 @@ export default function NewForm() {
   const [submitText, setSubmitText] = useState("Submit");
   const [submitColor, setSubmitColor] = useState("#008060");
   const [submitWidth, setSubmitWidth] = useState("100");
-  
+
   const [previewState, setPreviewState] = useState({});
   const handlePreviewChange = (fieldId, val) => {
     setPreviewState(prev => ({ ...prev, [fieldId]: val }));
@@ -596,80 +595,80 @@ export default function NewForm() {
             </div>
 
             <Box paddingBlockStart="200">
-                {selectedTab === 0 ? (
-                  <Card>
-                    <BlockStack gap="400">
-                      <InlineStack align="space-between" blockAlign="center">
-                        <Text variant="headingMd" as="h2">Form Fields</Text>
-                        <Button icon={PlusIcon} onClick={() => setIsAddFieldModalOpen(true)} variant="primary">Add Field</Button>
-                      </InlineStack>
-                      <Divider />
+              {selectedTab === 0 ? (
+                <Card>
+                  <BlockStack gap="400">
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text variant="headingMd" as="h2">Form Fields</Text>
+                      <Button icon={PlusIcon} onClick={() => setIsAddFieldModalOpen(true)} variant="primary">Add Field</Button>
+                    </InlineStack>
+                    <Divider />
 
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={fields.map(f => f.id)}
+                        strategy={verticalListSortingStrategy}
                       >
-                        <SortableContext
-                          items={fields.map(f => f.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          <BlockStack gap="300">
-                            {fields.map((field, index) => (
-                              <SortableField
-                                key={field.id}
-                                field={field}
-                                index={index}
-                                updateField={updateField}
-                                removeField={removeField}
-                                addOption={addOption}
-                                updateOption={updateOption}
-                                removeOption={removeOption}
-                                fieldTypes={fieldTypeOptions}
-                                fieldWidths={fieldWidths}
-                                allFields={fields}
-                              />
-                            ))}
-                          </BlockStack>
-                        </SortableContext>
-                      </DndContext>
-                      <Box paddingBlockStart="200">
-                        <Button icon={PlusIcon} onClick={() => setIsAddFieldModalOpen(true)} fullWidth>Add Field</Button>
-                      </Box>
+                        <BlockStack gap="300">
+                          {fields.map((field, index) => (
+                            <SortableField
+                              key={field.id}
+                              field={field}
+                              index={index}
+                              updateField={updateField}
+                              removeField={removeField}
+                              addOption={addOption}
+                              updateOption={updateOption}
+                              removeOption={removeOption}
+                              fieldTypes={fieldTypeOptions}
+                              fieldWidths={fieldWidths}
+                              allFields={fields}
+                            />
+                          ))}
+                        </BlockStack>
+                      </SortableContext>
+                    </DndContext>
+                    <Box paddingBlockStart="200">
+                      <Button icon={PlusIcon} onClick={() => setIsAddFieldModalOpen(true)} fullWidth>Add Field</Button>
+                    </Box>
+                  </BlockStack>
+                </Card>
+              ) : (
+                <Card>
+                  <BlockStack gap="400">
+                    <Text variant="headingMd" as="h2">Submit Button Customization</Text>
+                    <TextField
+                      label="Button Text"
+                      value={submitText}
+                      onChange={setSubmitText}
+                      autoComplete="off"
+                    />
+                    <Select
+                      label="Button Width"
+                      options={[
+                        { label: "Full Width (100%)", value: "100" },
+                        { label: "Centered (Auto)", value: "auto" },
+                      ]}
+                      value={submitWidth}
+                      onChange={setSubmitWidth}
+                    />
+                    <BlockStack gap="200">
+                      <Text variant="bodyMd">Button Color</Text>
+                      <InlineStack gap="400" blockAlign="center">
+                        <ColorPicker color={colorHsb} onChange={handleColorChange} />
+                        <Box padding="200" background="bg-surface-secondary" borderRadius="100" borderWidth="025" borderColor="border">
+                          <Text variant="bodyMd" fontWeight="bold">{submitColor.toUpperCase()}</Text>
+                        </Box>
+                      </InlineStack>
                     </BlockStack>
-                  </Card>
-                ) : (
-                  <Card>
-                    <BlockStack gap="400">
-                      <Text variant="headingMd" as="h2">Submit Button Customization</Text>
-                      <TextField
-                        label="Button Text"
-                        value={submitText}
-                        onChange={setSubmitText}
-                        autoComplete="off"
-                      />
-                      <Select
-                        label="Button Width"
-                        options={[
-                          { label: "Full Width (100%)", value: "100" },
-                          { label: "Centered (Auto)", value: "auto" },
-                        ]}
-                        value={submitWidth}
-                        onChange={setSubmitWidth}
-                      />
-                      <BlockStack gap="200">
-                        <Text variant="bodyMd">Button Color</Text>
-                        <InlineStack gap="400" blockAlign="center">
-                          <ColorPicker color={colorHsb} onChange={handleColorChange} />
-                          <Box padding="200" background="bg-surface-secondary" borderRadius="100" borderWidth="025" borderColor="border">
-                            <Text variant="bodyMd" fontWeight="bold">{submitColor.toUpperCase()}</Text>
-                          </Box>
-                        </InlineStack>
-                      </BlockStack>
-                    </BlockStack>
-                  </Card>
-                )}
-              </Box>
+                  </BlockStack>
+                </Card>
+              )}
+            </Box>
           </BlockStack>
         </Layout.Section>
 
@@ -692,10 +691,10 @@ export default function NewForm() {
                         if (field.logic && field.logic.triggerFieldId && field.logic.triggerValue) {
                           const triggerField = fields.find(f => f.id === field.logic.triggerFieldId);
                           const currentVal = previewState[field.logic.triggerFieldId] !== undefined ? previewState[field.logic.triggerFieldId] : triggerField?.defaultValue || "";
-                          
+
                           const valsArray = Array.isArray(currentVal) ? currentVal : [currentVal];
                           const conditionMet = valsArray.includes(field.logic.triggerValue);
-                          
+
                           if (field.logic.action === "show" && !conditionMet) return null;
                           if (field.logic.action === "hide" && conditionMet) return null;
                         }
@@ -724,7 +723,7 @@ export default function NewForm() {
                                 </div>
                               ) : field.type === "select" ? (
                                 <div style={{ position: 'relative' }}>
-                                  <select 
+                                  <select
                                     value={previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue || ""}
                                     onChange={(e) => handlePreviewChange(field.id, e.target.value)}
                                     style={{ border: '1px solid #c9cccf', borderRadius: '4px', padding: '10px', background: 'white', display: 'flex', justifyContent: 'space-between', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)', width: '100%', appearance: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '14px', color: (previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue) ? 'inherit' : '#8c9196' }}
@@ -741,7 +740,7 @@ export default function NewForm() {
                                   {field.options?.map((opt, i) => {
                                     const currentVal = previewState[field.id] !== undefined ? previewState[field.id] : field.defaultValue || (field.type === 'checkbox' ? [] : "");
                                     const isChecked = field.type === "radio" ? currentVal === opt : (Array.isArray(currentVal) && currentVal.includes(opt));
-                                    
+
                                     return (
                                       <div key={i} onClick={() => {
                                         if (field.type === "radio") {
