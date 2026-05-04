@@ -93,8 +93,8 @@ export default function FormsIndex() {
   return (
     <Page
       fullWidth
-      title="My Forms"
-      subtitle={`${forms.length} form${forms.length !== 1 ? "s" : ""} created`}
+      title="Forms"
+      // subtitle={`${forms.length} form${forms.length !== 1 ? "s" : ""} created`}
       primaryAction={{
         content: "Create New Form",
         icon: PlusIcon,
