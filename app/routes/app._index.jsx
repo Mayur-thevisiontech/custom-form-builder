@@ -30,20 +30,20 @@ const CircleOutlineIcon = () => (
 export const loader = async ({ request }) => {
   const { session, admin } = await authenticate.admin(request);
   const forms = await prisma.form.findMany({ where: { shop: session.shop } });
-  
+
   let appEnabled = false;
   try {
     const themesRes = await admin.rest.get({ path: 'themes.json' });
     const themesData = await themesRes.json();
     const mainTheme = themesData.themes.find(t => t.role === 'main');
-    
+
     if (mainTheme) {
       const assetRes = await admin.rest.get({ path: `themes/${mainTheme.id}/assets.json?asset[key]=config/settings_data.json` });
       const assetData = await assetRes.json();
       if (assetData?.asset?.value) {
         const settings = JSON.parse(assetData.asset.value);
         const blocks = settings?.current?.blocks || {};
-        
+
         const embedBlock = Object.values(blocks).find(b => b.type && b.type.includes('form-embed'));
         if (embedBlock && embedBlock.disabled === false) {
           appEnabled = true;
@@ -53,9 +53,9 @@ export const loader = async ({ request }) => {
   } catch (err) {
     console.error("Error fetching theme settings:", err);
   }
-  
+
   const extensionId = process.env.SHOPIFY_FORM_EMBED_ID;
-  const themeUrl = extensionId 
+  const themeUrl = extensionId
     ? `https://${session.shop}/admin/themes/current/editor?context=apps&activateAppId=${extensionId}/app_embed`
     : `https://${session.shop}/admin/themes/current/editor?context=apps`;
 
@@ -78,7 +78,7 @@ export default function Index() {
     return () => window.removeEventListener("focus", handleFocus);
   }, [revalidator]);
   const hasCreatedForm = forms.length > 0;
-  
+
   const firstFormId = forms.length > 0 ? forms[0].id : "No form created yet";
 
   const completedSteps = [appEnabled, hasCreatedForm, false].filter(Boolean).length;
@@ -103,7 +103,7 @@ export default function Index() {
                     <Badge>OFF</Badge>
                   )}
                 </InlineStack>
-                <Button 
+                <Button
                   onClick={() => open(themeUrl, '_blank')}
                 >
                   {appEnabled ? "Disable app" : "Enable app"}
@@ -182,7 +182,7 @@ export default function Index() {
                         </div>
                         <BlockStack gap="400">
                           <Text variant="headingSm" as="h3">Add the form to your store</Text>
-                          
+
                           <InlineStack gap="400" align="space-between" blockAlign="start">
                             <div style={{ flex: 1 }}>
                               <Text variant="bodyMd">
@@ -192,21 +192,10 @@ export default function Index() {
                                 <Button variant="primary" onClick={() => open(themeUrl, '_blank')}>Add to store</Button>
                               </Box>
                             </div>
-
-                            <div style={{ flex: 1, maxWidth: '400px' }}>
-                              <Card background="bg-surface">
-                                <BlockStack gap="200">
-                                  <Text variant="bodySm" tone="subdued">Form ID</Text>
-                                  <TextField 
-                                    value={firstFormId} 
-                                    readOnly 
-                                    autoComplete="off" 
-                                    onFocus={(e) => e.target.select()}
-                                    helpText="Copy this ID to use in your Theme App Block"
-                                  />
-                                </BlockStack>
-                              </Card>
+                            <div className="breakpoint-imgs" style={{ flexShrink: 0 }}>
+                              <img alt="Add to store" data-title="<span className=&quot;translation_missing&quot; title=&quot;translation missing: en.Enable App Feature&quot;>Enable App Feature</span>" style={{ width: '214px', height: '146px' }} loading="lazy" fetchpriority="low" src="/images/third_setup_step.svg" />
                             </div>
+
                           </InlineStack>
                         </BlockStack>
                       </InlineStack>
