@@ -1,166 +1,189 @@
-import { useEffect } from "react";
-import { useFetcher } from "react-router";
+import { useState } from "react";
+import { useLoaderData, useNavigate } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
+import {
+  Page,
+  Layout,
+  Card,
+  BlockStack,
+  InlineStack,
+  Text,
+  Button,
+  Badge,
+  Box,
+  ProgressBar,
+  Icon,
+  TextField,
+  Divider,
+} from "@shopify/polaris";
+import { CheckCircleIcon, CircleIcon } from "@shopify/polaris-icons";
 
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
+  const forms = await prisma.form.findMany({ where: { shop: session.shop } });
+  
+  const themeUrl = `https://${session.shop}/admin/themes/current/editor?context=apps`;
 
-  return null;
-};
-
-export const action = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
-  const color = ["Red", "Orange", "Yellow", "Green"][
-    Math.floor(Math.random() * 4)
-  ];
-  const response = await admin.graphql(
-    `#graphql
-      mutation populateProduct($product: ProductCreateInput!) {
-        productCreate(product: $product) {
-          product {
-            id
-            title
-            handle
-            status
-            variants(first: 10) {
-              edges {
-                node {
-                  id
-                  price
-                  barcode
-                  createdAt
-                }
-              }
-            }
-            demoInfo: metafield(namespace: "$app", key: "demo_info") {
-              jsonValue
-            }
-          }
-        }
-      }`,
-    {
-      variables: {
-        product: {
-          title: `${color} Snowboard`,
-          metafields: [
-            {
-              namespace: "$app",
-              key: "demo_info",
-              value: "Created by React Router Template",
-            },
-          ],
-        },
-      },
-    },
-  );
-  const responseJson = await response.json();
-  const product = responseJson.data.productCreate.product;
-  const variantId = product.variants.edges[0].node.id;
-  const variantResponse = await admin.graphql(
-    `#graphql
-    mutation shopifyReactRouterTemplateUpdateVariant($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-      productVariantsBulkUpdate(productId: $productId, variants: $variants) {
-        productVariants {
-          id
-          price
-          barcode
-          createdAt
-        }
-      }
-    }`,
-    {
-      variables: {
-        productId: product.id,
-        variants: [{ id: variantId, price: "100.00" }],
-      },
-    },
-  );
-  const variantResponseJson = await variantResponse.json();
-  const metaobjectResponse = await admin.graphql(
-    `#graphql
-    mutation shopifyReactRouterTemplateUpsertMetaobject($handle: MetaobjectHandleInput!, $metaobject: MetaobjectUpsertInput!) {
-      metaobjectUpsert(handle: $handle, metaobject: $metaobject) {
-        metaobject {
-          id
-          handle
-          title: field(key: "title") {
-            jsonValue
-          }
-          description: field(key: "description") {
-            jsonValue
-          }
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }`,
-    {
-      variables: {
-        handle: {
-          type: "$app:example",
-          handle: "demo-entry",
-        },
-        metaobject: {
-          fields: [
-            { key: "title", value: "Demo Entry" },
-            {
-              key: "description",
-              value:
-                "This metaobject was created by the Shopify app template to demonstrate the metaobject API.",
-            },
-          ],
-        },
-      },
-    },
-  );
-  const metaobjectResponseJson = await metaobjectResponse.json();
-
-  return {
-    product: responseJson.data.productCreate.product,
-    variant: variantResponseJson.data.productVariantsBulkUpdate.productVariants,
-    metaobject: metaobjectResponseJson.data.metaobjectUpsert.metaobject,
-  };
+  return { forms, themeUrl };
 };
 
 export default function Index() {
-  const fetcher = useFetcher();
+  const { forms, themeUrl } = useLoaderData();
+  const navigate = useNavigate();
   const shopify = useAppBridge();
-  const isLoading =
-    ["loading", "submitting"].includes(fetcher.state) &&
-    fetcher.formMethod === "POST";
 
-  useEffect(() => {
-    if (fetcher.data?.product?.id) {
-      shopify.toast.show("Product created");
-    }
-  }, [fetcher.data?.product?.id, shopify]);
-  const generateProduct = () => fetcher.submit({}, { method: "POST" });
+  const [appEnabled, setAppEnabled] = useState(true);
+  const hasCreatedForm = forms.length > 0;
+  
+  const firstFormId = forms.length > 0 ? forms[0].id : "No form created yet";
+
+  const completedSteps = [appEnabled, hasCreatedForm, false].filter(Boolean).length;
+  const totalSteps = 3;
 
   return (
-    <s-page heading="Custom Form Builder">
-      <s-section heading="Manage your forms">
-        <s-paragraph>
-          Create and manage your custom storefront forms. All submitted data can be viewed in the dashboard.
-        </s-paragraph>
-        <s-button href="/app/forms">View Forms</s-button>
-      </s-section>
+    <Page fullWidth>
+      <BlockStack gap="500">
+        <Text variant="headingXl" as="h1">
+          Hi there! 👋 Ready to create?
+        </Text>
 
-      <s-section heading="How to use the Form Builder">
-        <s-paragraph>
-          1. Go to the <strong>Forms</strong> page and click <strong>Create form</strong>.<br/>
-          2. Give your form a name and add the fields you need.<br/>
-          3. Customize your submit button text and color.<br/>
-          4. Save your form. It will be ready to use on your storefront!
-        </s-paragraph>
-        <s-paragraph>
-          <em>Note: First Name and Email are mandatory for all forms to ensure you collect essential customer data.</em>
-        </s-paragraph>
-      </s-section>
-    </s-page>
+        <Layout>
+          <Layout.Section variant="oneHalf">
+            <Card>
+              <InlineStack align="space-between" blockAlign="center">
+                <InlineStack gap="200" blockAlign="center">
+                  <Text variant="bodyMd" fontWeight="bold">App embed status</Text>
+                  {appEnabled ? (
+                    <Badge tone="success">ON</Badge>
+                  ) : (
+                    <Badge>OFF</Badge>
+                  )}
+                </InlineStack>
+                <Button 
+                  onClick={() => {
+                    setAppEnabled(!appEnabled);
+                    if (!appEnabled) {
+                      open(themeUrl, '_blank');
+                    }
+                  }}
+                >
+                  {appEnabled ? "Disable app" : "Enable app"}
+                </Button>
+              </InlineStack>
+            </Card>
+          </Layout.Section>
+
+          <Layout.Section variant="oneHalf">
+            <Card>
+              <InlineStack align="space-between" blockAlign="center">
+                <Text variant="bodyMd" fontWeight="bold">Theme app blocks</Text>
+                <Badge tone="info">0 active app blocks</Badge>
+              </InlineStack>
+            </Card>
+          </Layout.Section>
+        </Layout>
+
+        <Layout>
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="400">
+                <InlineStack align="space-between">
+                  <Text variant="headingMd" as="h2">Get started</Text>
+                </InlineStack>
+                <Text variant="bodyMd">
+                  Follow these steps to set up and add your first form to your store.
+                </Text>
+
+                <InlineStack gap="300" blockAlign="center">
+                  <div style={{ flex: 1 }}>
+                    <ProgressBar progress={(completedSteps / totalSteps) * 100} size="small" tone="success" />
+                  </div>
+                  <Text variant="bodySm" tone="subdued">{completedSteps} / {totalSteps} completed</Text>
+                </InlineStack>
+
+                <Box paddingBlockStart="200">
+                  <BlockStack gap="0">
+                    {/* Step 1 */}
+                    <Box padding="300">
+                      <InlineStack gap="300" blockAlign="start">
+                        <div style={{ color: appEnabled ? '#008060' : '#8c9196' }}>
+                          <Icon source={appEnabled ? CheckCircleIcon : CircleIcon} />
+                        </div>
+                        <BlockStack gap="200">
+                          <Text variant="headingSm" as="h3">Enable the app</Text>
+                          {!appEnabled && (
+                            <Button onClick={() => open(themeUrl, '_blank')}>Enable App in Theme</Button>
+                          )}
+                        </BlockStack>
+                      </InlineStack>
+                    </Box>
+                    <Divider />
+
+                    {/* Step 2 */}
+                    <Box padding="300">
+                      <InlineStack gap="300" blockAlign="start">
+                        <div style={{ color: hasCreatedForm ? '#008060' : '#8c9196' }}>
+                          <Icon source={hasCreatedForm ? CheckCircleIcon : CircleIcon} />
+                        </div>
+                        <BlockStack gap="200">
+                          <Text variant="headingSm" as="h3">Create form</Text>
+                          {!hasCreatedForm && (
+                            <Button variant="primary" onClick={() => navigate('/app/forms/new')}>Create New Form</Button>
+                          )}
+                        </BlockStack>
+                      </InlineStack>
+                    </Box>
+                    <Divider />
+
+                    {/* Step 3 */}
+                    <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                      <InlineStack gap="300" blockAlign="start">
+                        <div style={{ color: '#8c9196' }}>
+                          <Icon source={CircleIcon} />
+                        </div>
+                        <BlockStack gap="400">
+                          <Text variant="headingSm" as="h3">Add the form to your store</Text>
+                          
+                          <InlineStack gap="400" align="space-between" blockAlign="start">
+                            <div style={{ flex: 1 }}>
+                              <Text variant="bodyMd">
+                                In your Theme Editor, add the form as an App block, or paste its shortcode on the page where you want it to appear.
+                              </Text>
+                              <Box paddingBlockStart="300">
+                                <Button variant="primary" onClick={() => open(themeUrl, '_blank')}>Add to store</Button>
+                              </Box>
+                            </div>
+
+                            <div style={{ flex: 1, maxWidth: '400px' }}>
+                              <Card background="bg-surface">
+                                <BlockStack gap="200">
+                                  <Text variant="bodySm" tone="subdued">Form ID</Text>
+                                  <TextField 
+                                    value={firstFormId} 
+                                    readOnly 
+                                    autoComplete="off" 
+                                    onFocus={(e) => e.target.select()}
+                                    helpText="Copy this ID to use in your Theme App Block"
+                                  />
+                                </BlockStack>
+                              </Card>
+                            </div>
+                          </InlineStack>
+                        </BlockStack>
+                      </InlineStack>
+                    </Box>
+
+                  </BlockStack>
+                </Box>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+        </Layout>
+      </BlockStack>
+    </Page>
   );
 }
 
