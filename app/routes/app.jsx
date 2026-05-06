@@ -18,10 +18,7 @@ export default function App() {
   return (
     <AppProvider embedded apiKey={apiKey}>
       <PolarisProvider i18n={{}}>
-        <s-app-nav>
-          <s-link href="/app/forms">Forms</s-link>
-        </s-app-nav>
-        <div style={{ maxWidth: '1440px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '20px' }}>
           <Outlet />
         </div>
       </PolarisProvider>

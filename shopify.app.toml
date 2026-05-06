@@ -2,7 +2,7 @@
 
 client_id = "64b50aa7971e5f157ad668b4f902b93b"
 name = "Custom Form Builder"
-application_url = "https://app.thevisiontech.com/index.php"
+application_url = "https://localhost:9293"
 embedded = true
 
 [build]
@@ -18,13 +18,13 @@ api_version = "2026-07"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_files,write_products,read_themes"
+scopes = "write_files,write_products"
 
 [auth]
 redirect_urls = [
-  "https://app.thevisiontech.com/index.php",
-  "https://app.thevisiontech.com/install.php",
-  "https://app.thevisiontech.com/token.php"
+  "https://localhost:9293/auth/callback",
+  "https://localhost:9293/auth/shopify/callback",
+  "https://localhost:9293/api/auth/callback"
 ]
 
 [app_proxy]
