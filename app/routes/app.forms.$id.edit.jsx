@@ -239,7 +239,20 @@ export default function EditForm() {
                   </Card>
                 ) : (
                   <Card>
-                    <TextField label="Notification Emails" value={notificationEmails} onChange={setNotificationEmails} autoComplete="off" />
+                    <BlockStack gap="400">
+                      <Text variant="headingMd" as="h2">Email Notifications</Text>
+                      <Text variant="bodyMd" tone="subdued">
+                        Enter the email addresses that should receive a notification when this form is submitted. Separate multiple emails with a comma.
+                      </Text>
+                      <TextField
+                        label="Receive Emails"
+                        value={notificationEmails}
+                        onChange={setNotificationEmails}
+                        autoComplete="off"
+                        placeholder="e.g. admin@store.com, sales@store.com"
+                        helpText="If left empty, notifications will be sent to the store admin email by default."
+                      />
+                    </BlockStack>
                   </Card>
                 )}
 

@@ -767,7 +767,7 @@ export default function NewForm() {
                       onChange={setNotificationEmails}
                       autoComplete="off"
                       placeholder="e.g. admin@store.com, sales@store.com"
-                      helpText="If left empty, no email notifications will be sent."
+                      helpText="If left empty, notifications will be sent to the store admin email by default."
                     />
                   </BlockStack>
                 </Card>
