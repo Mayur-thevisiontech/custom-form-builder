@@ -1,0 +1,23 @@
+<div id="custom-form-{{ block.settings.form_id }}" 
+     class="custom-form-builder-container" 
+     data-form-id="{{ block.settings.form_id }}"
+     data-shop="{{ shop.permanent_domain }}">
+  <div class="cfb-loading">Loading form...</div>
+</div>
+
+<script src="{{ 'form-renderer.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Custom Form",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "form_id",
+      "label": "Form ID",
+      "info": "Copy your Form ID from the App Dashboard."
+    }
+  ]
+}
+{% endschema %}

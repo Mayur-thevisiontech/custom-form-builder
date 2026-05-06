@@ -2,7 +2,7 @@
 
 client_id = "64b50aa7971e5f157ad668b4f902b93b"
 name = "Custom Form Builder"
-application_url = "https://app-applications.myshopify.com"
+application_url = "https://app.thevisiontech.com/index.php"
 embedded = true
 
 [build]
@@ -10,7 +10,7 @@ automatically_update_urls_on_dev = true
 include_config_on_deploy = true
 
 [webhooks]
-api_version = "2025-01"
+api_version = "2026-07"
 
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/uninstalled"
@@ -21,9 +21,13 @@ api_version = "2025-01"
 scopes = "write_files,write_products,read_themes"
 
 [auth]
-redirect_urls = []
+redirect_urls = [
+  "https://app.thevisiontech.com/index.php",
+  "https://app.thevisiontech.com/install.php",
+  "https://app.thevisiontech.com/token.php"
+]
 
 [app_proxy]
-url = "/apps/custom-form-builder"
-subpath = "submit"
+url = "https://app-applications.myshopify.com"
+subpath = "custom-form-builder"
 prefix = "apps"

@@ -1,0 +1,15 @@
+﻿
+> dev
+> shopify app dev
+
+Running pre-dev command: "npm exec prisma generate"Preparing dev preview on app-applications.myshopify.comProxy server started on port 54453 GraphiQL server started on port 3457Running theme check on your Theme app extension...
+[warning]: OrphanedSnippet 
+This snippet is not referenced by any other files 
+
+1  {{ 'ratings.stars.label' | t }}: Bundling theme extension form-embed...Γ£à Ready, watching for changes in your app Γöé Access scopes auto-granted: read_themes, write_files, write_productsΓöé Using URL: https://favorites-honolulu-amounts-globe.trycloudflare.comΓöé Any changes to prefix and subpath will only apply to new installsΓöö Using URL: https://favorites-honolulu-amounts-globe.trycloudflare.comPrisma schema loaded from prisma\schema.prisma
+Datasource "db": SQLite database "dev.sqlite" at "file:dev.sqlite"
+
+3 migrations found in prisma/migrations
+
+
+No pending migrations to apply.

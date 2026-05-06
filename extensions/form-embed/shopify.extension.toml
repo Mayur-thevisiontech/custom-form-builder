@@ -1,3 +1,6 @@
 name = "form-embed"
 type = "theme"
 uid = "8f596786-2116-b254-d1df-71b4c27367f5de12c662"
+
+[development]
+root_dir = "extensions/form-embed"

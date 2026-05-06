@@ -17,16 +17,19 @@ import {
   Divider,
   Icon,
 } from "@shopify/polaris";
-import { EditIcon, DeleteIcon, ViewIcon, PlusIcon } from "@shopify/polaris-icons";
+import { EditIcon, DeleteIcon, ViewIcon, PlusIcon, DuplicateIcon, CheckIcon, XIcon, OrderIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
-  const forms = await prisma.form.findMany({
-    where: { shop: session.shop },
-    orderBy: { createdAt: "desc" },
-  });
+  const forms = await prisma.$queryRaw`
+    SELECT * FROM Form 
+    WHERE shop = ${session.shop} 
+    ORDER BY createdAt DESC
+  `;
+
+  // console.log("Forms from DB (raw):", JSON.stringify(forms, null, 2));
 
   return { forms };
 };
@@ -46,6 +49,15 @@ export const action = async ({ request }) => {
           settings: JSON.parse(formData.get("settings")),
         },
       });
+      return { success: true };
+    }
+    if (intent === "toggle_status") {
+      const forms = await prisma.$queryRaw`SELECT active FROM Form WHERE id = ${String(id)}`;
+      if (forms && forms.length > 0) {
+        const currentActive = forms[0].active;
+        const newActive = (currentActive === 1 || currentActive === true) ? 0 : 1;
+        await prisma.$executeRaw`UPDATE Form SET active = ${newActive} WHERE id = ${String(id)}`;
+      }
       return { success: true };
     }
   }
@@ -85,9 +97,16 @@ export default function FormsIndex() {
     );
     closeModal();
   };
+  const safeParse = (data, fallback = []) => {
+    if (typeof data === "string") {
+      try { return JSON.parse(data); } catch (e) { return fallback; }
+    }
+    return data || fallback;
+  };
 
   const getFieldCount = (schema) => {
-    try { return JSON.parse(schema)?.length || 0; } catch { return 0; }
+    const s = safeParse(schema);
+    return Array.isArray(s) ? s.length : 0;
   };
 
   return (
@@ -101,12 +120,13 @@ export default function FormsIndex() {
         onAction: () => navigate("/app/forms/new"),
       }}
     >
+
       {/* Stats Bar */}
       <Box paddingBlockEnd="500">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
           {[
             { label: "Total Forms", value: forms.length },
-            { label: "Active Forms", value: forms.length },
+            { label: "Active Forms", value: forms.filter(f => f.active === true || f.active === 1 || f.active === "true").length },
             { label: "Total Fields", value: forms.reduce((acc, f) => acc + getFieldCount(f.schema), 0) },
           ].map((stat) => (
             <Card key={stat.label}>
@@ -131,7 +151,8 @@ export default function FormsIndex() {
         </Card>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "16px" }}>
-          {forms.map(({ id, title, createdAt, schema, settings }) => {
+          {forms.map(({ id, title, createdAt, schema, settings, active }) => {
+            const isFormActive = active === true || active === 1 || active === "true";
             const submitColor = (() => { try { return JSON.parse(settings)?.submitColor || "#008060"; } catch { return "#008060"; } })();
             const fieldCount = getFieldCount(schema);
             const dateStr = new Date(createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
@@ -153,25 +174,60 @@ export default function FormsIndex() {
                   <BlockStack gap="200">
                     <InlineStack align="space-between" blockAlign="center">
                       <Text variant="headingMd" as="h3" fontWeight="semibold">{title}</Text>
-                      <Badge tone="success">Active</Badge>
+                      <Badge tone={isFormActive ? "success" : "attention"}>
+                        {isFormActive ? "Active" : "Inactive"}
+                      </Badge>
                     </InlineStack>
-                    <InlineStack gap="400">
+                    <InlineStack gap="400" blockAlign="center">
                       <Text variant="bodySm" tone="subdued">📅 {dateStr}</Text>
-                      <Text variant="bodySm" tone="subdued">📋 {fieldCount} field{fieldCount !== 1 ? "s" : ""}</Text>
+                      <InlineStack gap="200" blockAlign="center">
+                        <Button 
+                          size="micro" 
+                          tone={isFormActive ? "critical" : "success"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fetcher.submit({ id, intent: "toggle_status" }, { method: "POST" });
+                          }}
+                        >
+                          {isFormActive ? "Deactivate" : "Activate"}
+                        </Button>
+                      </InlineStack>
                     </InlineStack>
                   </BlockStack>
                 </div>
 
-                <div style={{ padding: "4px 20px 20px" }}>
-                  <Text variant="bodySm" tone="subdued" as="p" fontWeight="regular">
-                    Form ID: <code style={{ fontSize: "11px", background: "#f4f6f8", padding: "2px 6px", borderRadius: "4px", wordBreak: "break-all" }}>{id}</code>
-                  </Text>
+                <div style={{ padding: "0 20px 20px" }}>
+                  <Box background="bg-surface-secondary" padding="200" borderRadius="200">
+                    <InlineStack align="space-between" blockAlign="center">
+                      <BlockStack gap="050">
+                        <Text variant="bodyXs" tone="subdued">FORM ID</Text>
+                        <code style={{ fontSize: "11px", color: "#4b5563", fontFamily: "monospace" }}>{id}</code>
+                      </BlockStack>
+                      <Button
+                        variant="tertiary"
+                        icon={DuplicateIcon}
+                        onClick={() => {
+                          navigator.clipboard.writeText(id);
+                          if (window.shopify) {
+                            window.shopify.toast.show("ID Copied to clipboard");
+                          } else {
+                            alert("ID Copied: " + id);
+                          }
+                        }}
+                        size="micro"
+                        accessibilityLabel="Copy ID"
+                      />
+                    </InlineStack>
+                  </Box>
                 </div>
 
                 <Divider />
 
                 <div style={{ padding: "12px 16px", background: "#f9fafb" }}>
                   <InlineStack gap="200" align="end">
+                    <Button size="slim" icon={OrderIcon} onClick={() => navigate(`/app/forms/${id}/submissions`)}>
+                      Submissions
+                    </Button>
                     <Button size="slim" icon={ViewIcon} onClick={() => openModal("view", { id, title, schema, settings })}>
                       View
                     </Button>
@@ -205,10 +261,9 @@ export default function FormsIndex() {
       {/* View/Preview Modal */}
       <Modal open={activeModal === "view"} onClose={closeModal} title={`Preview: ${selectedForm?.title}`} large>
         <Modal.Section>
-          <div style={{ fontFamily: '"Outfit", sans-serif', padding: "8px" }}>
-            <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+          <div style={{ padding: "8px" }}>
             <BlockStack gap="400">
-              {selectedForm?.schema && JSON.parse(selectedForm.schema).map((field) => (
+              {selectedForm?.schema && safeParse(selectedForm.schema).map((field) => (
                 <div key={field.id} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   <label style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>
                     {field.label} {field.required && <span style={{ color: "#ef4444" }}>*</span>}
@@ -221,7 +276,7 @@ export default function FormsIndex() {
               ))}
               <div style={{ marginTop: "8px" }}>
                 {(() => {
-                  const s = selectedForm?.settings ? JSON.parse(selectedForm.settings) : {};
+                  const s = selectedForm?.settings ? safeParse(selectedForm.settings, {}) : {};
                   return (
                     <button style={{ backgroundColor: s.submitColor || "#008060", color: "white", padding: "14px 28px", border: "none", borderRadius: "8px", fontSize: "16px", fontWeight: "600", cursor: "default", boxShadow: `0 4px 14px ${s.submitColor || "#008060"}40` }}>
                       {s.submitText || "Submit"}

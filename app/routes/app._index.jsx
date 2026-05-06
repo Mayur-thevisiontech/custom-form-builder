@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLoaderData, useNavigate, useRevalidator } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -12,47 +12,46 @@ import {
   InlineStack,
   Text,
   Button,
-  Badge,
   Box,
-  ProgressBar,
+  Badge,
   Icon,
-  TextField,
-  Divider,
 } from "@shopify/polaris";
-import { CheckCircleIcon } from "@shopify/polaris-icons";
-
-const CircleOutlineIcon = () => (
-  <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" />
-  </svg>
-);
+import { CheckCircleIcon, AlertBubbleIcon, MagicIcon } from "@shopify/polaris-icons";
 
 export const loader = async ({ request }) => {
-  const { session, admin } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const forms = await prisma.form.findMany({ where: { shop: session.shop } });
 
+  // Universal Status Check
   let appEnabled = false;
   try {
-    const themesRes = await admin.rest.get({ path: 'themes.json' });
+    const shop = session.shop;
+    const token = session.accessToken;
+    const themesRes = await fetch(`https://${shop}/admin/api/2024-04/themes.json`, {
+      headers: { 'X-Shopify-Access-Token': token }
+    });
     const themesData = await themesRes.json();
-    const mainTheme = themesData.themes.find(t => t.role === 'main');
+    const themes = themesData.themes || [];
 
-    if (mainTheme) {
-      const assetRes = await admin.rest.get({ path: `themes/${mainTheme.id}/assets.json?asset[key]=config/settings_data.json` });
-      const assetData = await assetRes.json();
-      if (assetData?.asset?.value) {
-        const settings = JSON.parse(assetData.asset.value);
-        const blocks = settings?.current?.blocks || {};
-
-        const embedBlock = Object.values(blocks).find(b => b.type && b.type.includes('form-embed'));
-        if (embedBlock && embedBlock.disabled === false) {
+    for (const theme of themes) {
+      const res = await fetch(`https://${shop}/admin/api/2024-04/themes/${theme.id}/assets.json?asset[key]=config/settings_data.json`, {
+        headers: { 'X-Shopify-Access-Token': token }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const settings = JSON.parse(data.asset.value);
+        const blocks = settings?.current?.blocks || settings?.blocks || {};
+        const found = Object.values(blocks).some(b => {
+          const type = (b.type || "").toLowerCase();
+          return type.includes('shopify://apps/') && (type.includes('embed') || type.includes('form')) && b.disabled === false;
+        });
+        if (found) {
           appEnabled = true;
+          break;
         }
       }
     }
-  } catch (err) {
-    console.error("Error fetching theme settings:", err);
-  }
+  } catch (e) { }
 
   const extensionId = process.env.SHOPIFY_FORM_EMBED_ID;
   const themeUrl = extensionId
@@ -65,147 +64,164 @@ export const loader = async ({ request }) => {
 export default function Index() {
   const { forms, themeUrl, appEnabled } = useLoaderData();
   const navigate = useNavigate();
-  const shopify = useAppBridge();
   const revalidator = useRevalidator();
+  const [isSyncing, setIsSyncing] = useState(false);
 
+  // Load-Free Sync Logic
   useEffect(() => {
-    const handleFocus = () => {
-      if (revalidator.state === "idle") {
-        revalidator.revalidate();
-      }
-    };
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [revalidator]);
+    if (!appEnabled) {
+      const interval = setInterval(() => {
+        if (revalidator.state === "idle") {
+          setIsSyncing(true);
+          revalidator.revalidate();
+        }
+      }, 5000); // Check every 5 seconds
+      return () => clearInterval(interval);
+    } else {
+      setIsSyncing(false);
+    }
+  }, [appEnabled, revalidator]);
+
   const hasCreatedForm = forms.length > 0;
-
-  const firstFormId = forms.length > 0 ? forms[0].id : "No form created yet";
-
-  const completedSteps = [appEnabled, hasCreatedForm, false].filter(Boolean).length;
-  const totalSteps = 3;
 
   return (
     <Page fullWidth>
-      <BlockStack gap="500">
-        <Text variant="headingXl" as="h1">
-          Hi there! 👋 Ready to create?
-        </Text>
+      <style>{`
+        @keyframes pulse-ring {
+          0% { transform: scale(.33); }
+          80%, 100% { opacity: 0; }
+        }
+        @keyframes pulse-dot {
+          0% { transform: scale(.8); }
+          50% { transform: scale(1); }
+          100% { transform: scale(.8); }
+        }
+        .status-card {
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          background: ${appEnabled ? 'linear-gradient(135deg, #008060 0%, #005e46 100%)' : 'linear-gradient(135deg, #FFC966 0%, #F5A623 100%)'};
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .setup-card {
+          border-left: 4px solid #5C6AC4;
+          transition: transform 0.2s;
+        }
+        .setup-card:hover {
+          transform: translateY(-2px);
+        }
+      `}</style>
 
-        <Layout>
-          <Layout.Section variant="oneHalf">
-            <Card>
-              <InlineStack align="space-between" blockAlign="center">
-                <InlineStack gap="200" blockAlign="center">
-                  <Text variant="bodyMd" fontWeight="bold">App embed status</Text>
-                  {appEnabled ? (
-                    <Badge tone="success">ON</Badge>
-                  ) : (
-                    <Badge>OFF</Badge>
-                  )}
-                </InlineStack>
-                <Button
-                  onClick={() => open(themeUrl, '_blank')}
-                >
-                  {appEnabled ? "Disable app" : "Enable app"}
-                </Button>
-              </InlineStack>
-            </Card>
-          </Layout.Section>
+      <BlockStack gap="600">
 
-          <Layout.Section variant="oneHalf">
-            <Card>
-              <InlineStack align="space-between" blockAlign="center">
-                <Text variant="bodyMd" fontWeight="bold">Theme app blocks</Text>
-                <Badge tone="info">0 active app blocks</Badge>
-              </InlineStack>
-            </Card>
-          </Layout.Section>
-        </Layout>
-
-        <Layout>
-          <Layout.Section>
-            <Card>
-              <BlockStack gap="400">
-                <InlineStack align="space-between">
-                  <Text variant="headingMd" as="h2">Get started</Text>
-                </InlineStack>
-                <Text variant="bodyMd">
-                  Follow these steps to set up and add your first form to your store.
+        {/* Modern Creative Status Bar - Perfectly Aligned */}
+        <div className="status-card" style={{ borderRadius: '16px', padding: '24px', color: 'white' }}>
+          <InlineStack align="space-between" blockAlign="center">
+            <InlineStack gap="400" blockAlign="start">
+              <div style={{ position: 'relative', width: '24px', height: '24px', marginTop: '4px' }}>
+                {isSyncing && !appEnabled && <div style={{ position: 'absolute', width: '44px', height: '44px', top: '-10px', left: '-10px', borderRadius: '50%', background: 'rgba(255,255,255,0.4)', animation: 'pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite' }} />}
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'white', animation: 'pulse-dot 1.25s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite' }} />
+              </div>
+              <BlockStack gap="100">
+                <Text variant="headingLg" as="h2" color="inherit">
+                  {appEnabled ? "Connection Secured" : "Awaiting Integration"}
                 </Text>
+                <Text variant="bodyLg" color="inherit">
+                  {appEnabled
+                    ? "Great! Your form builder is successfully linked to your storefront."
+                    : "We're currently searching for your app in the theme settings..."}
+                </Text>
+              </BlockStack>
+            </InlineStack>
 
-                <InlineStack gap="300" blockAlign="center">
-                  <div style={{ flex: 1 }}>
-                    <ProgressBar progress={(completedSteps / totalSteps) * 100} size="small" tone="success" />
-                  </div>
-                  <Text variant="bodySm" tone="subdued">{completedSteps} / {totalSteps} completed</Text>
+            {!appEnabled && (
+              <Button size="large" onClick={() => window.open(themeUrl, '_blank')}>
+                Open Theme Editor
+              </Button>
+            )}
+            {appEnabled && (
+              <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 24px', borderRadius: '30px', backdropFilter: 'blur(10px)' }}>
+                <InlineStack gap="200" blockAlign="center">
+
+                  <Text variant="bodyMd" fontWeight="bold">Active</Text>
                 </InlineStack>
+              </div>
+            )}
+          </InlineStack>
+        </div>
 
-                <Box paddingBlockStart="200">
-                  <BlockStack gap="0">
-                    {/* Step 1 */}
-                    <Box padding="300">
-                      <InlineStack gap="300" blockAlign="start">
-                        <div style={{ color: appEnabled ? '#008060' : '#8c9196', width: '20px', height: '20px' }}>
-                          <Icon source={appEnabled ? CheckCircleIcon : CircleOutlineIcon} />
-                        </div>
-                        <BlockStack gap="200">
-                          <Text variant="headingSm" as="h3">Enable the app</Text>
-                          {!appEnabled && (
-                            <Button onClick={() => open(themeUrl, '_blank')}>Enable App in Theme</Button>
-                          )}
-                        </BlockStack>
-                      </InlineStack>
-                    </Box>
-                    <Divider />
+        <Layout>
+          {/* Main Controls */}
+          <Layout.Section variant="oneHalf">
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">Quick Actions</Text>
+              <Card>
+                <div className="setup-card" style={{ padding: '24px' }}>
+                  <InlineStack align="space-between" blockAlign="center">
+                    <BlockStack gap="100">
+                      <Text variant="headingSm" as="h3">Designer Tool</Text>
+                      <Text variant="bodyMd" tone="subdued">Launch the visual form builder to edit your fields.</Text>
+                    </BlockStack>
+                    <Button variant="primary" onClick={() => navigate('/app/forms/new')}>
+                      <InlineStack gap="200"><Icon source={MagicIcon} /> Create Form</InlineStack>
+                    </Button>
+                  </InlineStack>
+                </div>
+              </Card>
+            </BlockStack>
+          </Layout.Section>
 
-                    {/* Step 2 */}
-                    <Box padding="300">
-                      <InlineStack gap="300" blockAlign="start">
-                        <div style={{ color: hasCreatedForm ? '#008060' : '#8c9196', width: '20px', height: '20px' }}>
-                          <Icon source={hasCreatedForm ? CheckCircleIcon : CircleOutlineIcon} />
-                        </div>
-                        <BlockStack gap="200">
-                          <Text variant="headingSm" as="h3">Create form</Text>
-                          {!hasCreatedForm && (
-                            <Button variant="primary" onClick={() => navigate('/app/forms/new')}>Create New Form</Button>
-                          )}
-                        </BlockStack>
-                      </InlineStack>
-                    </Box>
-                    <Divider />
-
-                    {/* Step 3 */}
-                    <Box padding="300" background="bg-surface-secondary" borderRadius="200">
-                      <InlineStack gap="300" blockAlign="start">
-                        <div style={{ color: '#8c9196', width: '20px', height: '20px' }}>
-                          <Icon source={CircleOutlineIcon} />
-                        </div>
-                        <BlockStack gap="400">
-                          <Text variant="headingSm" as="h3">Add the form to your store</Text>
-
-                          <InlineStack gap="400" align="space-between" blockAlign="start">
-                            <div style={{ flex: 1 }}>
-                              <Text variant="bodyMd">
-                                In your Theme Editor, add the form as an App block, or paste its shortcode on the page where you want it to appear.
-                              </Text>
-                              <Box paddingBlockStart="300">
-                                <Button variant="primary" onClick={() => open(themeUrl, '_blank')}>Add to store</Button>
-                              </Box>
-                            </div>
-                            <div className="breakpoint-imgs" style={{ flexShrink: 0 }}>
-
-                            </div>
-
-                          </InlineStack>
-                        </BlockStack>
-                      </InlineStack>
-                    </Box>
-
+          {/* Installation Progress */}
+          <Layout.Section variant="oneHalf">
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h2">Installation Progress</Text>
+              <Card>
+                <Box padding="500">
+                  <BlockStack gap="400">
+                    <InlineStack gap="300" blockAlign="center">
+                      <div style={{ width: '20px' }}>
+                        <Icon source={appEnabled ? CheckCircleIcon : AlertBubbleIcon} tone={appEnabled ? "success" : "caution"} />
+                      </div>
+                      <Text variant="bodyMd" fontWeight={appEnabled ? "bold" : "regular"}>Enable App Embed</Text>
+                    </InlineStack>
+                    <InlineStack gap="300" blockAlign="center">
+                      <div style={{ width: '20px' }}>
+                        <Icon source={hasCreatedForm ? CheckCircleIcon : AlertBubbleIcon} tone={hasCreatedForm ? "success" : "caution"} />
+                      </div>
+                      <Text variant="bodyMd" fontWeight={hasCreatedForm ? "bold" : "regular"}>Create Your First Form</Text>
+                    </InlineStack>
+                    {/* <InlineStack gap="300" blockAlign="center">
+                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid #8c9196' }} />
+                      <Text variant="bodyMd" tone="subdued">Add Form Block to Theme</Text>
+                    </InlineStack> */}
                   </BlockStack>
                 </Box>
-              </BlockStack>
-            </Card>
+              </Card>
+            </BlockStack>
           </Layout.Section>
+
+          {/* Recent Work */}
+          {hasCreatedForm && (
+            <Layout.Section>
+              <BlockStack gap="400">
+                <Text variant="headingMd" as="h2">Your Forms</Text>
+                <Layout>
+                  {forms.map(form => (
+                    <Layout.Section key={form.id} variant="oneThird">
+                      <Card>
+                        <BlockStack gap="300">
+                          <Text variant="headingSm" as="h3">{form.title}</Text>
+                          <Text variant="bodySm" tone="subdued">Last modified: {new Date(form.updatedAt).toLocaleDateString()}</Text>
+                          <InlineStack align="space-between">
+                            <Button variant="plain" onClick={() => navigate(`/app/forms/${form.id}`)}>Edit</Button>
+                            <Badge tone="success">Live</Badge>
+                          </InlineStack>
+                        </BlockStack>
+                      </Card>
+                    </Layout.Section>
+                  ))}
+                </Layout>
+              </BlockStack>
+            </Layout.Section>
+          )}
         </Layout>
       </BlockStack>
     </Page>

@@ -40,6 +40,7 @@ model Form {
   handle    String   @unique
   schema    Json     // [{id: "1", type: "text", label: "Name", logic: {...}}, ...]
   settings  Json     // {submitButtonText: "Send", successMessage: "Thank you!"}
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

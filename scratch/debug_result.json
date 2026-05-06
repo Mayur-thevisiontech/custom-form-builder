@@ -1,0 +1,5 @@
+{
+  "themes": {
+    "errors": "[API] This action requires merchant approval for read_themes scope."
+  }
+}

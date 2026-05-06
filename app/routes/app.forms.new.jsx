@@ -300,6 +300,10 @@ export default function NewForm() {
   const [submitColor, setSubmitColor] = useState("#008060");
   const [submitWidth, setSubmitWidth] = useState("100");
   const [notificationEmails, setNotificationEmails] = useState("");
+  
+  // Customization Settings
+  const [layoutStyle, setLayoutStyle] = useState("clean-silhouette");
+  const [alignment, setAlignment] = useState("center");
 
   const [previewState, setPreviewState] = useState({});
   const handlePreviewChange = (fieldId, val) => {
@@ -316,6 +320,7 @@ export default function NewForm() {
   const tabs = [
     { id: "fields", content: "Form Fields", accessibilityLabel: "Form Fields", panelID: "fields-panel" },
     { id: "submit", content: "Submit Button", accessibilityLabel: "Submit Button", panelID: "submit-panel" },
+    { id: "customization", content: "Layout & Customization", accessibilityLabel: "Layout & Customization", panelID: "customization-panel" },
     { id: "notifications", content: "Notifications", accessibilityLabel: "Notifications", panelID: "notifications-panel" },
   ];
 
@@ -526,7 +531,14 @@ export default function NewForm() {
       {
         title,
         schema: JSON.stringify(fields),
-        settings: JSON.stringify({ submitText, submitColor, submitWidth, notificationEmails }),
+        settings: JSON.stringify({ 
+          submitText, 
+          submitColor, 
+          submitWidth, 
+          notificationEmails,
+          layoutStyle,
+          alignment
+        }),
       },
       { method: "POST" }
     );
@@ -543,6 +555,31 @@ export default function NewForm() {
         loading: fetcher.state === "submitting",
       }}
     >
+      {/* Breadcrumbs */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        fontSize: '13px',
+        color: '#6B7280',
+        marginBottom: '20px',
+      }}>
+        <span
+          style={{ cursor: 'pointer', color: '#6B7280' }}
+          onClick={() => navigate('/app')}
+        >
+          Dashboard
+        </span>
+        <span style={{ color: '#9CA3AF' }}>›</span>
+        <span
+          style={{ cursor: 'pointer', color: '#6B7280' }}
+          onClick={() => navigate('/app/forms')}
+        >
+          Forms
+        </span>
+        <span style={{ color: '#9CA3AF' }}>›</span>
+        <span style={{ color: '#111827', fontWeight: '500' }}>Create New Form</span>
+      </div>
       <Layout>
         <Layout.Section>
           <BlockStack gap="500">
@@ -672,6 +709,51 @@ export default function NewForm() {
                     </BlockStack>
                   </BlockStack>
                 </Card>
+              ) : selectedTab === 2 ? (
+                <Card>
+                  <BlockStack gap="400">
+                    <Text variant="headingMd" as="h2">Layout & Customization</Text>
+                    
+                    <BlockStack gap="200">
+                       <Text variant="bodyMd" fontWeight="bold">Form Style</Text>
+                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                          {[
+                            { id: 'clean-silhouette', label: 'Clean Silhouette', desc: 'Thin Border' },
+                            { id: 'classic-canvas', label: 'Classic Canvas', desc: 'BG + Border' },
+                            { id: 'modern-floating', label: 'Modern Floating', desc: 'Drop Shadow' },
+                          ].map(style => (
+                            <div 
+                              key={style.id}
+                              onClick={() => setLayoutStyle(style.id)}
+                              style={{
+                                cursor: 'pointer',
+                                padding: '16px',
+                                borderRadius: '8px',
+                                border: layoutStyle === style.id ? '2px solid #008060' : '1px solid #e1e3e5',
+                                background: layoutStyle === style.id ? '#f0fdf4' : 'white',
+                                textAlign: 'center',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              <Text variant="bodySm" fontWeight="bold">{style.label}</Text>
+                              <Text variant="bodyXs" tone="subdued">{style.desc}</Text>
+                            </div>
+                          ))}
+                       </div>
+                    </BlockStack>
+
+                    <Select
+                      label="Horizontal Alignment"
+                      options={[
+                        { label: 'Left Aligned', value: 'left' },
+                        { label: 'Center Aligned', value: 'center' },
+                        { label: 'Right Aligned', value: 'right' },
+                      ]}
+                      value={alignment}
+                      onChange={setAlignment}
+                    />
+                  </BlockStack>
+                </Card>
               ) : (
                 <Card>
                   <BlockStack gap="400">
@@ -702,14 +784,23 @@ export default function NewForm() {
                 <Divider />
                 <div style={{
                   padding: '32px',
-                  background: '#ffffff',
+                  background: layoutStyle === 'classic-canvas' ? '#f9fafb' : '#ffffff',
                   borderRadius: '16px',
-                  boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
-                  border: '1px solid #e1e3e5',
-                  fontFamily: '"Outfit", sans-serif'
+                  boxShadow: layoutStyle === 'modern-floating' ? '0 10px 30px rgba(0,0,0,0.1)' : 'none',
+                  border: layoutStyle === 'modern-floating' ? 'none' : '1px solid #e1e3e5',
+                  fontFamily: '"Outfit", sans-serif',
+                  marginLeft: alignment === 'center' ? 'auto' : alignment === 'right' ? 'auto' : '0',
+                  marginRight: alignment === 'center' ? 'auto' : alignment === 'left' ? 'auto' : '0',
+                  maxWidth: '100%',
+                  transition: 'all 0.3s ease'
                 }}>
-                  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
-                  <h3 style={{ fontSize: '24px', fontWeight: '600', color: '#111827', textAlign: 'center', margin: '0 0 32px 0' }}>
+                  <h3 style={{ 
+                    fontSize: '24px', 
+                    fontWeight: '600', 
+                    color: '#111827', 
+                    textAlign: 'center', // Heading usually stays centered or can follow alignment? User said alignment for layout
+                    margin: '0 0 32px 0' 
+                  }}>
                     {title || "Form Preview"}
                   </h3>
 
