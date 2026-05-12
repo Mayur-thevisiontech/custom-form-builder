@@ -1,12 +1,19 @@
 import prisma from "../db.server";
 
-export const loader = async ({ params, request }) => {
+export const loader = async ({ params }) => {
   const { id } = params;
 
-  const forms = await prisma.$queryRaw`SELECT * FROM Form WHERE id = ${id} LIMIT 1`;
-  const form = forms && forms.length > 0 ? forms[0] : null;
+  const form = await prisma.form.findFirst({
+    where: { id: id }
+  });
 
-  const isFormActive = form && (form.active === true || form.active === 1 || form.active === "true");
+  if (form) {
+    // Update lastSeenAt asynchronously to track storefront activity
+    prisma.form.update({
+      where: { id: form.id },
+      data: { lastSeenAt: new Date() }
+    }).catch(e => console.error("Failed to update lastSeenAt:", e));
+  }
 
   if (!form) {
     return new Response(JSON.stringify({ error: "Form not found", code: "NOT_FOUND" }), {
@@ -14,21 +21,26 @@ export const loader = async ({ params, request }) => {
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
       },
     });
   }
 
+  const isFormActive = form.active === true || form.active === 1 || form.active === "true";
+
   if (!isFormActive) {
     return new Response(JSON.stringify({ error: "Form is inactive. Please publish it from the dashboard.", code: "INACTIVE" }), {
-      status: 403, // Use 403 for inactive to distinguish from 404
+      status: 403,
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
       },
     });
   }
 
   const responseData = {
+    id: form.id,
     title: form.title,
     schema: typeof form.schema === 'string' ? JSON.parse(form.schema) : form.schema,
     settings: typeof form.settings === 'string' ? JSON.parse(form.settings) : form.settings,
@@ -38,6 +50,7 @@ export const loader = async ({ params, request }) => {
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
     },
   });
 };

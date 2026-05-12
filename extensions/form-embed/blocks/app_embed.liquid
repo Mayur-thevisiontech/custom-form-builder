@@ -1,9 +1,17 @@
-<script>window.shopifyFormBuilderEnabled = true;</script>
+<div data-my-form-builder-status="enabled" style="display:none;"></div>
+
+<script>
+  window.shopifyFormBuilderEnabled = true;
+
+  fetch('/apps/custom-form-builder/embed-status').catch(() => {});
+
+  console.log('Custom Form Builder Embed Loaded');
+</script>
 
 {% schema %}
 {
-  "name": "Form Builder Embed",
-  "target": "head",
+  "name": "Custom Form Builder",
+  "target": "body",
   "settings": []
 }
 {% endschema %}

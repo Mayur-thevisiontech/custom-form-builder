@@ -2,8 +2,9 @@ import { Outlet, useLoaderData, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import "@shopify/polaris/build/esm/styles.css";
-import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { authenticate } from "../shopify.server";
+import { AppProvider } from "@shopify/shopify-app-react-router/react";
+import { NavMenu } from "@shopify/app-bridge-react";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
@@ -16,11 +17,13 @@ export default function App() {
   const { apiKey } = useLoaderData();
 
   return (
-    <AppProvider embedded apiKey={apiKey}>
+    <AppProvider apiKey={apiKey}>
+      <NavMenu>
+        <a href="/app" rel="home">Dashboard</a>
+        <a href="/app/forms">Forms</a>
+      </NavMenu>
       <PolarisProvider i18n={{}}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '20px' }}>
-          <Outlet />
-        </div>
+        <Outlet />
       </PolarisProvider>
     </AppProvider>
   );

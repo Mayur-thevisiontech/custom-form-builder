@@ -34,15 +34,16 @@ model Session {
 }
 
 model Form {
-  id        String   @id @default(uuid())
-  shop      String
-  title     String
-  handle    String   @unique
-  schema    Json     // [{id: "1", type: "text", label: "Name", logic: {...}}, ...]
-  settings  Json     // {submitButtonText: "Send", successMessage: "Thank you!"}
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  shop        String
+  title       String
+  handle      String   @unique
+  schema      Json     // [{id: "1", type: "text", label: "Name", logic: {...}}, ...]
+  settings    Json     // {submitButtonText: "Send", successMessage: "Thank you!"}
+  active      Boolean  @default(true)
+  lastSeenAt  DateTime? // Tracks if form is active on storefront
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Submission {

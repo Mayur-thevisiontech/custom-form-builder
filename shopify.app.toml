@@ -2,12 +2,11 @@
 
 client_id = "64b50aa7971e5f157ad668b4f902b93b"
 name = "Custom Form Builder"
-application_url = "https://localhost:9293"
+application_url = "https://localhost:3000"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-include_config_on_deploy = true
 
 [webhooks]
 api_version = "2026-07"
@@ -22,12 +21,12 @@ scopes = "write_files,write_products"
 
 [auth]
 redirect_urls = [
-  "https://localhost:9293/auth/callback",
-  "https://localhost:9293/auth/shopify/callback",
-  "https://localhost:9293/api/auth/callback"
+  "https://localhost:3000/auth/callback",
+  "https://localhost:3000/auth/shopify/callback",
+  "https://localhost:3000/api/auth/callback"
 ]
 
 [app_proxy]
-url = "https://app-applications.myshopify.com"
+url = "https://localhost:3000"
 subpath = "custom-form-builder"
 prefix = "apps"

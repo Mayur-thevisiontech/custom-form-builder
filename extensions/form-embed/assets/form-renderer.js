@@ -26,36 +26,45 @@
       if (!formId) continue;
 
       try {
-        let scriptOrigin = 'https://app-applications.myshopify.com';
+        let scriptOrigin = '';
         const scripts = document.getElementsByTagName('script');
         for (let s of scripts) {
-          if (s.src && s.src.includes('form-renderer.js') && !s.src.includes('cdn.shopify.com')) {
-            scriptOrigin = new URL(s.src).origin;
-            break;
+          // Look for our specific renderer or any script from our app's likely tunnel domain
+          if (s.src && (s.src.includes('form-renderer.js') || s.src.includes('trycloudflare.com') || s.src.includes('thevisiontech.com')) && !s.src.includes('cdn.shopify.com')) {
+            try {
+              scriptOrigin = new URL(s.src).origin;
+              break;
+            } catch(e) {}
           }
         }
 
         const proxyUrl = `/apps/custom-form-builder/api/form/${formId}`;
-        const directUrl = `${scriptOrigin}/api/form/${formId}`;
+        const directUrl = scriptOrigin ? `${scriptOrigin}/api/form/${formId}` : null;
         const localUrl = `/api/form/${formId}`;
 
         console.log('--- Custom Form Builder Debug ---');
         console.log('Form ID:', formId);
-        console.log('Script Origin:', scriptOrigin);
+        console.log('Script Origin Detected:', scriptOrigin);
+        console.log('Current Host:', window.location.host);
 
         let response;
-        // Attempt 1: App Proxy (Storefront)
+        // Attempt 1: App Proxy (Storefront) - This is the primary way
         try {
           console.log(`Attempt 1: Fetching via Proxy (${proxyUrl})...`);
           response = await fetch(proxyUrl);
-        } catch (e) { console.warn('Proxy fetch network error:', e); }
+          if (response.status === 404) console.warn('Proxy returned 404. Check shopify.app.toml proxy settings.');
+        } catch (e) { 
+          console.warn('Proxy fetch network error:', e); 
+        }
 
         // Attempt 2: Direct URL (Cross-domain / Editor)
-        if (!response || !response.ok) {
+        if ((!response || !response.ok) && directUrl) {
           try {
             console.log(`Attempt 2: Fetching via Direct URL (${directUrl})...`);
             response = await fetch(directUrl);
-          } catch (e) { console.warn('Direct fetch network error:', e); }
+          } catch (e) { 
+            console.warn('Direct fetch network error:', e); 
+          }
         }
 
         // Attempt 3: Local Path (App domain)
@@ -63,7 +72,9 @@
           try {
             console.log(`Attempt 3: Fetching via Local Path (${localUrl})...`);
             response = await fetch(localUrl);
-          } catch (e) { console.warn('Local fetch network error:', e); }
+          } catch (e) { 
+            console.warn('Local fetch network error:', e); 
+          }
         }
 
         if (!response || !response.ok) {
@@ -97,7 +108,7 @@
     const { schema, settings } = form;
     const submitText = settings.submitText || 'Submit';
     const submitColor = settings.submitColor || '#008060';
-    
+
     // Customization Settings
     const layoutStyle = settings.layoutStyle || 'clean-silhouette';
     const alignment = settings.alignment || 'center';
